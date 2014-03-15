@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Font Name="Tahoma" Size="8.25" />
+  <Class Name="ERP_Budget.Common.CBudgetDocType">
+    <Position X="29.25" Y="16" Width="3.5" />
+    <TypeIdentifier>
+      <FileName>CBudgetDocType.cs</FileName>
+      <HashCode>AAaAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAACAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.IBaseListItem">
+    <Position X="33" Y="11.25" Width="1.5" />
+    <TypeIdentifier>
+      <FileName>IBaseListItem.cs</FileName>
+      <HashCode>AAYAAAAAAAAAAAAAAAAABIQAAAAAAAAAAAACAACAQAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CBaseList&lt;T&gt;">
+    <Position X="48" Y="10.5" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>CBaseList.cs</FileName>
+      <HashCode>AAAAAAAAAAIRAAIAAABAAAAEAABBAAACAAAAQCcCAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CPaymentType">
+    <Position X="38.25" Y="22" Width="3.25" />
+    <TypeIdentifier>
+      <FileName>CPaymentType.cs</FileName>
+      <HashCode>AAYBAAAAAAAAAAAAAAAABAAAAAAAAAAAAAACAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CBudgetDocState">
+    <Position X="24.5" Y="20" Width="3.5" />
+    <TypeIdentifier>
+      <FileName>CBudgetDocState.cs</FileName>
+      <HashCode>AAYAAAAAAAAAAAAABAAABAAAAAAAAAAAAAACAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CMeasure">
+    <Position X="29.25" Y="21" Width="2.75" />
+    <TypeIdentifier>
+      <FileName>CMeasure.cs</FileName>
+      <HashCode>AAYAAAAAAAAAAAAAAAAABAAAAAAAAAAAAEACAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CUser">
+    <Position X="42.5" Y="16" Width="3.5" />
+    <TypeIdentifier>
+      <FileName>CUser.cs</FileName>
+      <HashCode>AA4AgEAAAAAAAAQAIBAABGgAAAAEAAggAABCAAIiACQ=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CEmail">
+    <Position X="33.75" Y="20" Width="2.5" />
+    <TypeIdentifier>
+      <FileName>CEmail.cs</FileName>
+      <HashCode>AAYAAAAABAAAASAAEAAABAAAAAgAAQCAAAACAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CCompany">
+    <Position X="47.25" Y="16" Width="3" />
+    <TypeIdentifier>
+      <FileName>CCompany.cs</FileName>
+      <HashCode>AkYQQAACAAAAABAAEAAABQGAAAAAAAAAAAQCACAAAEA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CEmployeePost">
+    <Position X="29.25" Y="18.5" Width="3.25" />
+    <TypeIdentifier>
+      <FileName>CEmployeePost.cs</FileName>
+      <HashCode>AAYAAAAAAAAAAAAAAAAABAAEAAAAAAAAAAACAAAAAAA=</HashCode>
+    </TypeIdentifier>
+    <InheritanceLine Type="ERP_Budget.Common.IBaseListItem" ManuallyRouted="true">
+      <Path>
+        <Point X="33.75" Y="13.816" />
+        <Point X="33.75" Y="15.625" />
+        <Point X="33.5" Y="15.625" />
+        <Point X="33.5" Y="18.2" />
+        <Point X="30.875" Y="18.2" />
+        <Point X="30.875" Y="18.5" />
+      </Path>
+    </InheritanceLine>
+  </Class>
+  <Class Name="ERP_Budget.Common.CDebitArticle">
+    <Position X="33.75" Y="16" Width="3" />
+    <TypeIdentifier>
+      <FileName>CDebitArticle.cs</FileName>
+      <HashCode>AAYAAgAAAAAAAAAUAAAABAACAAAAAAAEAAACgAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CBudgetDep">
+    <Position X="38.5" Y="5.75" Width="3" />
+    <TypeIdentifier>
+      <FileName>CBudgetDep.cs</FileName>
+      <HashCode>AAYAAggAAAQAAAAAAAAAJAAAACAABAgAAAACgIAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CBudgetRouteItem">
+    <Position X="47.25" Y="5.75" Width="3.25" />
+    <TypeIdentifier>
+      <FileName>CBudgetRouteItem.cs</FileName>
+      <HashCode>BAYBAAAAAAAAgAAAAAAAJAQAAAQAAAAAgAICAEAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CBudgetRoute">
+    <Position X="43" Y="11" Width="3.25" />
+    <TypeIdentifier>
+      <FileName>CBudgetRoute.cs</FileName>
+      <HashCode>AAagAAAAAEAAAAAAAAAABAAAAAAAAAAAAAACAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CDynamicRight">
+    <Position X="24.75" Y="16" Width="3.5" />
+    <TypeIdentifier>
+      <FileName>CDynamicRight.cs</FileName>
+      <HashCode>AAYCAAAAAAAggAAAEAAABwAAAAAAAAAAAAICAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CCurrency">
+    <Position X="38.5" Y="16" Width="2.75" />
+    <TypeIdentifier>
+      <FileName>CCurrency.cs</FileName>
+      <HashCode>AAYAAACAAAApgBAAEQAABQAAgBgAAQAADAgCAAAAAQA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CCurrencyRateItem">
+    <Position X="28.25" Y="10.5" Width="3.5" />
+    <TypeIdentifier>
+      <FileName>CCurrencyRateItem.cs</FileName>
+      <HashCode>AAYAABCIAAAAIAAAAAAABAAAAAQAAAABAAAiAEAAAAg=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CBudgetItem">
+    <Position X="32.75" Y="6" Width="3.25" />
+    <TypeIdentifier>
+      <FileName>CBudgetItem.cs</FileName>
+      <HashCode>BAYAAIoAAAAAAAABABBAJDAAKAAAAAAQACACQAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CBudget">
+    <Position X="28.25" Y="6" Width="3.25" />
+    <TypeIdentifier>
+      <FileName>CBudget.cs</FileName>
+      <HashCode>CEYAAACQAAAAAAIAAAAABAAAABAAAAABABACAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CBudgetDoc">
+    <Position X="24.5" Y="6" Width="3" />
+    <TypeIdentifier>
+      <FileName>CBudgetDoc.cs</FileName>
+      <HashCode>gQ4SIAKQKAEggBIAEEAQBQBgiFAAAIADgAACBgAKQAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CAccountTransn">
+    <Position X="42.75" Y="5.75" Width="3.5" />
+    <TypeIdentifier>
+      <FileName>CAccountTransn.cs</FileName>
+      <HashCode>AAYQAAKBAAAAAAAAAAAAFACAiJAAAAADQAACAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ERP_Budget.Common.CCompanyPost">
+    <Position X="38" Y="10.5" Width="3.5" />
+    <TypeIdentifier>
+      <FileName>CCompanyPost.cs</FileName>
+      <HashCode>AAaAIAAAAAAAAAAABQAABAgAAAAAAAAAAAACBACAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+</ClassDiagram>

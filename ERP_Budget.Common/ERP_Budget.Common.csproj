@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{928780EC-D2C8-489B-B4BC-FC1F1E71C651}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ERP_Budget.Common</RootNamespace>
+    <AssemblyName>ERP_Budget.Common</AssemblyName>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>UniXP.snk</AssemblyOriginatorKeyFile>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <IsWebBootstrapper>true</IsWebBootstrapper>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <PublishUrl>http://localhost/ERP_Budget.Common/</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Web</InstallFrom>
+    <UpdateEnabled>true</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>P:\IT отдел\UniXP\Options Dll\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>P:\IT отдел\UniXP\Options Dll\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DevExpress.Data.v7.2, Version=7.2.4.0, Culture=neutral, PublicKeyToken=9b171c9fd64da1d1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="DevExpress.Utils.v7.2, Version=7.2.4.0, Culture=neutral, PublicKeyToken=9b171c9fd64da1d1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="DevExpress.XtraEditors.v7.2, Version=7.2.4.0, Culture=neutral, PublicKeyToken=9b171c9fd64da1d1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="DevExpress.XtraTreeList.v7.2, Version=7.2.4.0, Culture=neutral, PublicKeyToken=9b171c9fd64da1d1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UniXP.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7483d705c8cfb03e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>P:\IT отдел\UniXP\UniXP.Common.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CAccountPlan.cs" />
+    <Compile Include="CAccountTransn.cs" />
+    <Compile Include="CAccountTrnEvent.cs" />
+    <Compile Include="CAccountTrnType.cs" />
+    <Compile Include="CBaseList.cs" />
+    <Compile Include="CBudget.cs" />
+    <Compile Include="CBudgetCurrencyRate.cs" />
+    <Compile Include="CBudgetDep.cs" />
+    <Compile Include="CBudgetDoc.cs" />
+    <Compile Include="CBudgetDocAttach.cs" />
+    <Compile Include="CBudgetDocCategory.cs" />
+    <Compile Include="CBudgetDocEvent.cs" />
+    <Compile Include="CBudgetDocState.cs" />
+    <Compile Include="CBudgetDocStateDraw.cs" />
+    <Compile Include="CBudgetDocType.cs" />
+    <Compile Include="CBudgetDocTypeCondition.cs" />
+    <Compile Include="CBudgetDocTypeConditionAlgoritm.cs" />
+    <Compile Include="CBudgetDocTypeDraw.cs" />
+    <Compile Include="CBudgetDocTypeVariable.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CBudgetDocViewAccess.cs" />
+    <Compile Include="CBudgetExpenseType.cs" />
+    <Compile Include="CBudgetItem.cs" />
+    <Compile Include="CBudgetMail.cs" />
+    <Compile Include="CBudgetProject.cs" />
+    <Compile Include="CBudgetRoute.cs" />
+    <Compile Include="CBudgetType.cs" />
+    <Compile Include="CCourseNBRB.cs" />
+    <Compile Include="CNoteType.cs" />
+    <Compile Include="CRouteCondition.cs" />
+    <Compile Include="CRouteConditionAlgoritm.cs" />
+    <Compile Include="CRoutePointGroup.cs" />
+    <Compile Include="CRouteTemplate.cs" />
+    <Compile Include="CRoutePoint.cs" />
+    <Compile Include="CCompany.cs" />
+    <Compile Include="CCompanyPost.cs" />
+    <Compile Include="CCurrency.cs" />
+    <Compile Include="CCurrencyRateItem.cs" />
+    <Compile Include="CDebitArticle.cs" />
+    <Compile Include="CDynamicRight.cs" />
+    <Compile Include="CEmail.cs" />
+    <Compile Include="CEmployeePost.cs" />
+    <Compile Include="CMeasure.cs" />
+    <Compile Include="CPaymentType.cs" />
+    <Compile Include="CRouteVariable.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CSetting.cs" />
+    <Compile Include="CSettingForImportData.cs" />
+    <Compile Include="CUser.cs" />
+    <Compile Include="dsErpBudget.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>dsErpBudget.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="frmBudgetDepManagerList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmBudgetDepManagerList.Designer.cs">
+      <DependentUpon>frmBudgetDepManagerList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IBaseListItem.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="ClassDiagram_ErpBudgetCommon.cd" />
+    <None Include="dsErpBudget.xsc">
+      <DependentUpon>dsErpBudget.xsd</DependentUpon>
+    </None>
+    <None Include="dsErpBudget.xsd">
+      <SubType>
+      </SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>dsErpBudget.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="dsErpBudget.xss">
+      <DependentUpon>dsErpBudget.xsd</DependentUpon>
+    </None>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="UniXP.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ERP_Budget.Global\ERP_Budget.Global.csproj">
+      <Project>{02bb168b-4850-4e0d-8da7-409cd36d01ac}</Project>
+      <Name>ERP_Budget.Global</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="frmBudgetDepManagerList.resx">
+      <DependentUpon>frmBudgetDepManagerList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\licenses.licx" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
