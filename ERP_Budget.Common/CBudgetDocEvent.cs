@@ -805,6 +805,92 @@ namespace ERP_Budget.Common
         }
         #endregion
 
+
+        #region Фильтрация списка пользователей
+        /// <summary>
+        /// Возвращает список пользователей, имеющих доступ к указанному действию
+        /// </summary>
+        /// <param name="objProfile">профайл</param>
+        /// <param name="BudgetDocEvent_Guid">УИ действия</param>
+        /// <param name="BudgetDep_Guid">УИ бюджетного подразделения</param>
+        /// <param name="Budget_Guid">УИ бюджета</param>
+        /// <param name="strErr">текст ошибки</param>
+        /// <returns>список объектов класса "CUser"</returns>
+        public static List<CUser> GetBudgetDocEventUserList(UniXP.Common.CProfile objProfile,
+            System.Guid BudgetDocEvent_Guid, System.Guid BudgetDep_Guid, System.Guid Budget_Guid, 
+            ref System.String strErr )
+        {
+            List<CUser> objList = new List<CUser>();
+
+            System.Data.SqlClient.SqlConnection DBConnection = objProfile.GetDBSource();
+            if (DBConnection == null) { return objList; }
+
+            try
+            {
+                // соединение с БД получено, прописываем команду на выборку данных
+                System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand() 
+                { 
+                    Connection = DBConnection, 
+                    CommandType = System.Data.CommandType.StoredProcedure, 
+                    CommandText = System.String.Format("[{0}].[dbo].[usp_GetBudgetDocEventUserList]", objProfile.GetOptionsDllDBName()) 
+                };
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUMBER", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MESSAGE", System.Data.SqlDbType.NVarChar, 4000) { Direction = System.Data.ParameterDirection.Output });
+
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BudgetDocEvent_Guid", System.Data.SqlDbType.UniqueIdentifier));
+                cmd.Parameters["@BudgetDocEvent_Guid"].Value = BudgetDocEvent_Guid;
+
+                if (BudgetDep_Guid.CompareTo(System.Guid.Empty) != 0)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BudgetDep_Guid", System.Data.SqlDbType.UniqueIdentifier));
+                    cmd.Parameters["@BudgetDep_Guid"].Value = BudgetDep_Guid;
+                }
+
+                if (Budget_Guid.CompareTo(System.Guid.Empty) != 0)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Budget_Guid", System.Data.SqlDbType.UniqueIdentifier));
+                    cmd.Parameters["@Budget_Guid"].Value = Budget_Guid;
+                }
+
+                System.Data.SqlClient.SqlDataReader rs = cmd.ExecuteReader();
+                if (rs.HasRows)
+                {
+                    while (rs.Read())
+                    {
+                        objList.Add(new CUser()
+                        {
+                            ulID = System.Convert.ToInt32(rs["ErpBudgetUserID"]),
+                            ulUniXPID = System.Convert.ToInt32(rs["UniXPUserID"]),
+                            UserLastName = System.Convert.ToString(rs["strLastName"]),
+                            UserFirstName = System.Convert.ToString(rs["strFirstName"]),
+                            IsBlocked = System.Convert.ToBoolean(rs["IsUserBlocked"])
+                        }
+                        );
+                    }
+                }
+                else
+                {
+                    strErr += ("\nСписок пользователей для заданного действия пуст.");
+                }
+                rs.Close();
+                rs.Dispose();
+                cmd.Dispose();
+            }
+            catch (System.Exception e)
+            {
+                strErr += ("\nЗапрос списка пользователей для заданного действия.\nТекст ошибки: " + e.Message);
+            }
+			finally // очищаем занимаемые ресурсы
+            {
+                DBConnection.Close();
+            }
+
+            return objList;
+        }
+
+        #endregion
+
         public override string ToString()
         {
             return Name;
