@@ -102,10 +102,10 @@ namespace ERP_Budget.Common
         /// </summary>
         /// <param name="objProfile">профайл</param>
         /// <returns>список условий выбора маршрута</returns>
-        public static System.Collections.Generic.List<CRouteCondition> GetRouteConditionList(
+        public static List<CRouteCondition> GetRouteConditionList(
             UniXP.Common.CProfile objProfile)
         {
-            System.Collections.Generic.List<CRouteCondition> objList = new List<CRouteCondition>();
+            List<CRouteCondition> objList = new List<CRouteCondition>();
             try
             {
                 // необходимо получить соединение с БД

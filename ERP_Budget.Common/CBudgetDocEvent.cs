@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
+using System.Linq;
 
 namespace ERP_Budget.Common
 {
@@ -805,7 +806,6 @@ namespace ERP_Budget.Common
         }
         #endregion
 
-
         #region Фильтрация списка пользователей
         /// <summary>
         /// Возвращает список пользователей, имеющих доступ к указанному действию
@@ -890,6 +890,88 @@ namespace ERP_Budget.Common
         }
 
         #endregion
+
+        #region Список всех событий с перечнем пользователей
+        /// <summary>
+        /// Возвращает список тех событий, которым назначены динамические права и пользователи
+        /// </summary>
+        /// <param name="objProfile">профайл</param>
+        /// <param name="cmdSQL">SQL-команда</param>
+        /// <param name="strErr">текст ошибки</param>
+        /// <returns>список объектов класса "CBudgetDocEvent"</returns>
+        public static List<CBudgetDocEvent> GetBudgetDocEventList(UniXP.Common.CProfile objProfile,
+            System.Data.SqlClient.SqlCommand cmdSQL, ref System.String strErr)
+        {
+            List<CBudgetDocEvent> objList = new List<CBudgetDocEvent>();
+
+            System.Data.SqlClient.SqlConnection DBConnection = null;
+            System.Data.SqlClient.SqlCommand cmd = null;
+            try
+            {
+                if (cmdSQL == null)
+                {
+                    DBConnection = objProfile.GetDBSource();
+                    if (DBConnection == null)
+                    {
+                        strErr += ("Не удалось получить соединение с базой данных.");
+                        return objList;
+                    }
+                    cmd = new System.Data.SqlClient.SqlCommand();
+                    cmd.Connection = DBConnection;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                }
+                else
+                {
+                    cmd = cmdSQL;
+                    cmd.Parameters.Clear();
+                }
+
+                cmd.CommandTimeout = 600;
+                cmd.CommandText = System.String.Format("[{0}].[dbo].[sp_GetBudgetDocEventUserList]", objProfile.GetOptionsDllDBName());
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                //cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUM", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                //cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MES", System.Data.SqlDbType.NVarChar, 4000) { Direction = System.Data.ParameterDirection.Output });
+
+                System.Data.SqlClient.SqlDataReader rs = cmd.ExecuteReader();
+                if (rs.HasRows)
+                {
+                    CBudgetDocEvent objBudgetDocEvent = null;
+                    while (rs.Read())
+                    {
+                        objBudgetDocEvent = objList.SingleOrDefault<CBudgetDocEvent>( x=>x.uuidID.CompareTo( (System.Guid)rs["BUDGETDOCEVENT_GUID_ID"] ) == 0 );
+
+                        if( objBudgetDocEvent == null )
+                        {
+                            objBudgetDocEvent= new CBudgetDocEvent() { 
+                                uuidID = (System.Guid)rs["BUDGETDOCEVENT_GUID_ID"],  
+                                OrderNum = System.Convert.ToInt32(rs["BUDGETDOCEVENT_ID"]), 
+                                Name = System.Convert.ToString( rs["BUDGETDOCEVENT_NAME"] ) } ;
+
+                            objList.Add(objBudgetDocEvent);
+                        }
+
+                        objBudgetDocEvent.UserList.Add( new CUser() { 
+                            ulID = System.Convert.ToInt32( rs["ulUserID"] ), 
+                            ulUniXPID = System.Convert.ToInt32( rs["UniXPUserID"] ), 
+                            UserLastName = System.Convert.ToString( rs["strLastName"] ), 
+                            UserFirstName = System.Convert.ToString( rs["strFirstName"] )  } );
+                    }
+                }
+                rs.Dispose();
+                if (cmdSQL == null)
+                {
+                    cmd.Dispose();
+                    DBConnection.Close();
+                }
+            }
+            catch (System.Exception f)
+            {
+                strErr += (String.Format("\nGetBudgetDocEventList\nТекст ошибки: {0}", f.Message));
+            }
+            return objList;
+        }        
+        #endregion
+
 
         public override string ToString()
         {

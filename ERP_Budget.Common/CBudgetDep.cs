@@ -336,7 +336,8 @@ namespace ERP_Budget.Common
         /// </summary>
         /// <param name="objProfile">профайл</param>
         /// <returns>список бюджетных подразделений</returns>
-        public static List<CBudgetDep> GetBudgetDepsListForBudgetDoc(UniXP.Common.CProfile objProfile)
+        public static List<CBudgetDep> GetBudgetDepsListForBudgetDoc( UniXP.Common.CProfile objProfile,
+            System.Boolean bInitManager = true, System.Boolean bLoadAdditionalManagerList = true )
         {
             List<CBudgetDep> objList = new List<CBudgetDep>();
 
@@ -363,18 +364,26 @@ namespace ERP_Budget.Common
                         objBudgetDep.m_strName = (System.String)rs["BUDGETDEP_NAME"];
                         if (rs["PARENT_GUID_ID"] != System.DBNull.Value) { objBudgetDep.m_uuidParentID = (System.Guid)rs["PARENT_GUID_ID"]; }
                         objBudgetDep.m_Manager = new CUser();
-                        objBudgetDep.m_Manager.Init(objProfile, (System.Int32)rs["BUDGETDEP_MANAGER"]);
-                        //objBudgetDep.m_bReadOnly = (System.Boolean)rs["ISREADONLY"];
-                        //objBudgetDep.m_bHasChildren = (System.Boolean)rs["HASCHILDREN"];
+                        objBudgetDep.m_Manager.ulID = (System.Int32)rs["BUDGETDEP_MANAGER"];
+
+                        if( bInitManager == true )
+                        {
+                            objBudgetDep.m_Manager.Init(objProfile, (System.Int32)rs["BUDGETDEP_MANAGER"]);
+                        }
+
                         objList.Add(objBudgetDep);
                     }
                 }
                 rs.Close();
                 rs.Dispose();
-                // попробуем подгрузить список распорядителей службы
-                foreach (CBudgetDep objBudgetDepItem in objList)
+
+                if (bLoadAdditionalManagerList == true)
                 {
-                    objBudgetDepItem.LoadAdditionalManagerList(objProfile, cmd);
+                    // список дополнительных распорядителей службы
+                    foreach (CBudgetDep objBudgetDepItem in objList)
+                    {
+                        objBudgetDepItem.LoadAdditionalManagerList(objProfile, cmd);
+                    }
                 }
 
                 cmd.Dispose();

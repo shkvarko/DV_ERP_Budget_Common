@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace ERP_Budget.Common
 {
@@ -84,6 +85,7 @@ namespace ERP_Budget.Common
         public static System.Collections.Generic.List<CRouteTemplate> GetRouteTemplateList( UniXP.Common.CProfile objProfile )
         {
             System.Collections.Generic.List<CRouteTemplate> objList = new List<CRouteTemplate>();
+            System.String strErr = System.String.Empty;
             try
             {
                 System.Data.SqlClient.SqlConnection DBConnection = objProfile.GetDBSource();
@@ -96,25 +98,32 @@ namespace ERP_Budget.Common
                 cmd.CommandText = System.String.Format( "[{0}].[dbo].[sp_GetRoute]", objProfile.GetOptionsDllDBName() );
                 cmd.Parameters.Add( new System.Data.SqlClient.SqlParameter( "@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ( ( System.Byte )( 0 ) ), ( ( System.Byte )( 0 ) ), "", System.Data.DataRowVersion.Current, null ) );
                 System.Data.SqlClient.SqlDataReader rs = cmd.ExecuteReader();
-                if( rs.HasRows )
+
+                if (rs.HasRows)
                 {
-                    while( rs.Read() )
+                    CRouteTemplate objRouteTemplate = null;
+
+                    while (rs.Read())
                     {
-                        CRouteTemplate objRouteTemplate = new CRouteTemplate();
-                        objRouteTemplate.m_uuidID = rs.GetGuid( 0 );
-                        objRouteTemplate.m_strName = rs.GetString( 1 );
-                        objRouteTemplate.m_strDescription = ( rs[ 2 ] == System.DBNull.Value ) ? "" : rs.GetString( 2 );
-                        objList.Add( objRouteTemplate );
-                    }
-                    rs.Close();
-                    for( System.Int32 i = 0; i < objList.Count; i++ )
-                    {
-                        // список точек маршрута
-                        objList[ i ].InitRouteDeclaration( cmd, objProfile );
+                        objRouteTemplate = new CRouteTemplate();
+
+                        objRouteTemplate.m_uuidID = rs.GetGuid(0);
+                        objRouteTemplate.m_strName = rs.GetString(1);
+                        objRouteTemplate.m_strDescription = (rs[2] == System.DBNull.Value) ? "" : rs.GetString(2);
+                        objList.Add(objRouteTemplate);
                     }
                 }
                 rs.Close();
                 rs.Dispose();
+
+                List<CBudgetDocEvent> objBudgetDocEventList = CBudgetDocEvent.GetBudgetDocEventList(objProfile, cmd, ref strErr);
+
+                foreach (CRouteTemplate objRouteTemplate in objList)
+                {
+                    objRouteTemplate.InitRouteDeclaration(cmd, objProfile, objBudgetDocEventList);
+                }
+                
+                
                 cmd.Dispose();
                 DBConnection.Close();
             }
@@ -134,9 +143,10 @@ namespace ERP_Budget.Common
         /// <param name="cmd">SQL - команда</param>
         /// <returns>список объектов "Шаблон маршрута"</returns>
         public static System.Collections.Generic.List<CRouteTemplate> GetRouteTemplateList(
-            System.Data.SqlClient.SqlCommand cmd, UniXP.Common.CProfile objProfile )
+            System.Data.SqlClient.SqlCommand cmd, UniXP.Common.CProfile objProfile, System.Boolean bInitRouteDeclaration = true)
         {
             System.Collections.Generic.List<CRouteTemplate> objList = new List<CRouteTemplate>();
+            System.String strErr = System.String.Empty;
             try
             {
                 if( cmd == null ) { return objList; }
@@ -147,23 +157,29 @@ namespace ERP_Budget.Common
                 System.Data.SqlClient.SqlDataReader rs = cmd.ExecuteReader();
                 if( rs.HasRows )
                 {
+                    CRouteTemplate objRouteTemplate = null;
                     while( rs.Read() )
                     {
-                        CRouteTemplate objRouteTemplate = new CRouteTemplate();
+                        objRouteTemplate = new CRouteTemplate();
+                        
                         objRouteTemplate.m_uuidID = rs.GetGuid( 0 );
                         objRouteTemplate.m_strName = rs.GetString( 1 );
                         objRouteTemplate.m_strDescription = ( rs[ 2 ] == System.DBNull.Value ) ? "" : rs.GetString( 2 );
                         objList.Add( objRouteTemplate );
                     }
-                    rs.Close();
-                    for( System.Int32 i = 0; i < objList.Count; i++ )
-                    {
-                        // список точек маршрута
-                        objList[ i ].InitRouteDeclaration( cmd, objProfile );
-                    }
                 }
                 rs.Close();
                 rs.Dispose();
+
+                List<CBudgetDocEvent> objBudgetDocEventList = CBudgetDocEvent.GetBudgetDocEventList(objProfile, cmd, ref strErr);
+
+                if (bInitRouteDeclaration == true)
+                {
+                    foreach (CRouteTemplate objRouteTemplate in objList)
+                    {
+                        objRouteTemplate.InitRouteDeclaration(cmd, objProfile, objBudgetDocEventList);
+                    }
+                }
             }
             catch( System.Exception e )
             {
@@ -180,7 +196,7 @@ namespace ERP_Budget.Common
         /// <param name="cmd">SQL - команда</param>
         /// <param name="objProfile">профайл</param>
         /// <returns>true - удачное завершение; false - ошибка</returns>
-        public System.Boolean InitRouteDeclaration( System.Data.SqlClient.SqlCommand cmd, UniXP.Common.CProfile objProfile )
+        public System.Boolean InitRouteDeclaration(System.Data.SqlClient.SqlCommand cmd, UniXP.Common.CProfile objProfile, List<CBudgetDocEvent> objBudgetDocEventList)
         {
             System.Boolean bRet = false;
 
@@ -216,11 +232,26 @@ namespace ERP_Budget.Common
                         }
                     }
                     rs.Close();
+
                     // заполняем списки пользователей, имеющих доступ к действию
-                    foreach( CRoutePoint objRoutePoint in this.m_RoutePointList )
+                    CBudgetDocEvent objBudgetDocEvent = null;
+                    foreach (CRoutePoint objRoutePoint in this.m_RoutePointList)
                     {
-                        objRoutePoint.BudgetDocEvent.LoadUserList( objProfile, cmd );
+                        if ((objBudgetDocEventList != null) && (objBudgetDocEventList.Count > 0))
+                        {
+                            objBudgetDocEvent = objBudgetDocEventList.SingleOrDefault<CBudgetDocEvent>(x => x.uuidID.CompareTo(objRoutePoint.BudgetDocEvent.uuidID) == 0);
+                            if ((objBudgetDocEvent != null) && (objBudgetDocEvent.UserList != null) && (objBudgetDocEvent.UserList.Count > 0))
+                            {
+                                objRoutePoint.BudgetDocEvent.UserList.Clear();
+                                objRoutePoint.BudgetDocEvent.UserList.AddRange(objBudgetDocEvent.UserList);
+                            }
+                        }
+                        else
+                        {
+                            objRoutePoint.BudgetDocEvent.LoadUserList(objProfile, cmd);
+                        }
                     }
+
                     bRet = true;
                 }
                 else
@@ -243,6 +274,9 @@ namespace ERP_Budget.Common
             }
             return bRet;
         }
+
+
+
         #endregion
 
         #region Init
@@ -280,7 +314,7 @@ namespace ERP_Budget.Common
                     { this.m_strDescription = rs.GetString( 2 ); }
 
                     // заполняем список точек маршрута
-                    bRet = InitRouteDeclaration( cmd, objProfile );
+                    bRet = InitRouteDeclaration( cmd, objProfile, null );
                 }
                 else
                 {

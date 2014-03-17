@@ -3299,6 +3299,7 @@ namespace ERP_Budget.Common
             try
             {
                 // соединение с БД получено, прописываем команду на создание записи в БД
+                cmd.CommandTimeout = 600;
                 cmd.Parameters.Clear();
                 cmd.CommandText = System.String.Format("[{0}].[dbo].[sp_AddBudgetDoc]", objProfile.GetOptionsDllDBName());
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
