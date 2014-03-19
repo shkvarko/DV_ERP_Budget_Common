@@ -46,6 +46,7 @@
             this.btnCancel = new DevExpress.XtraEditors.SimpleButton();
             this.labelInfo = new DevExpress.XtraEditors.LabelControl();
             this.imglNodes = new System.Windows.Forms.ImageList(this.components);
+            this.colCheckController = new DevExpress.XtraTreeList.Columns.TreeListColumn();
             this.tableLayoutPanelBackGround.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.treeList)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.repItemChecked)).BeginInit();
@@ -85,7 +86,8 @@
             this.treeList.Columns.AddRange(new DevExpress.XtraTreeList.Columns.TreeListColumn[] {
             this.colManagerName,
             this.colCheckManager,
-            this.colCheckCoordinator});
+            this.colCheckCoordinator,
+            this.colCheckController});
             this.treeList.KeyFieldName = "BUDGETDEP_GUID_ID";
             this.treeList.Location = new System.Drawing.Point(3, 23);
             this.treeList.Name = "treeList";
@@ -125,7 +127,7 @@
             this.colManagerName.OptionsColumn.ReadOnly = true;
             this.colManagerName.Visible = true;
             this.colManagerName.VisibleIndex = 0;
-            this.colManagerName.Width = 338;
+            this.colManagerName.Width = 257;
             // 
             // colCheckManager
             // 
@@ -137,7 +139,7 @@
             this.colCheckManager.OptionsColumn.AllowSort = false;
             this.colCheckManager.Visible = true;
             this.colCheckManager.VisibleIndex = 1;
-            this.colCheckManager.Width = 102;
+            this.colCheckManager.Width = 105;
             // 
             // repItemChecked
             // 
@@ -153,7 +155,7 @@
             this.colCheckCoordinator.OptionsColumn.AllowSort = false;
             this.colCheckCoordinator.Visible = true;
             this.colCheckCoordinator.VisibleIndex = 2;
-            this.colCheckCoordinator.Width = 94;
+            this.colCheckCoordinator.Width = 92;
             // 
             // repItemCheckEdit_ReadOnly
             // 
@@ -247,6 +249,16 @@
             this.imglNodes.Images.SetKeyName(0, "ok_16.png");
             this.imglNodes.Images.SetKeyName(1, "warning.png");
             // 
+            // colCheckController
+            // 
+            this.colCheckController.Caption = "Контролер";
+            this.colCheckController.FieldName = "Контролер";
+            this.colCheckController.Name = "colCheckController";
+            this.colCheckController.OptionsColumn.AllowSort = false;
+            this.colCheckController.Visible = true;
+            this.colCheckController.VisibleIndex = 3;
+            this.colCheckController.Width = 80;
+            // 
             // frmBudgetDepManagerList
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -289,5 +301,6 @@
         private DevExpress.XtraEditors.SimpleButton btnSave;
         private DevExpress.XtraEditors.SimpleButton btnCancel;
         private System.Windows.Forms.ImageList imglNodes;
+        private DevExpress.XtraTreeList.Columns.TreeListColumn colCheckController;
     }
 }

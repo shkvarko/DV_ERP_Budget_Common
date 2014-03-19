@@ -14,7 +14,6 @@ namespace ERP_Budget.Common
         Unkown = -1,
         BudgetDep = 0,
         Budget = 1
-
     }
     
     public partial class frmBudgetDepManagerList : DevExpress.XtraEditors.XtraForm
@@ -67,7 +66,8 @@ namespace ERP_Budget.Common
                     {
                         //добавляем узел в дерево
                         DevExpress.XtraTreeList.Nodes.TreeListNode objNode =
-                            treeList.AppendNode(new object[] { objUser.UserFullName, objUser.IsBudgetDepManager, objUser.IsBudgetDepCoordinator }, null);
+                            treeList.AppendNode(new object[] { objUser.UserFullName, objUser.IsBudgetDepManager, 
+                                objUser.IsBudgetDepCoordinator, objUser.IsBudgetDepController }, null);
 
                         objNode.Tag = objUser;
                     }
@@ -121,7 +121,8 @@ namespace ERP_Budget.Common
                     {
                         //добавляем узел в дерево
                         DevExpress.XtraTreeList.Nodes.TreeListNode objNode =
-                            treeList.AppendNode(new object[] { objUser.UserFullName, objUser.IsBudgetDepManager, objUser.IsBudgetDepCoordinator }, null);
+                            treeList.AppendNode(new object[] { objUser.UserFullName, objUser.IsBudgetDepManager, 
+                                objUser.IsBudgetDepCoordinator, objUser.IsBudgetDepController }, null);
 
                         objNode.Tag = objUser;
                     }
@@ -151,7 +152,7 @@ namespace ERP_Budget.Common
 
         #region Сохранение изменений
 
-        private System.Boolean SaveBudgetDepManagerList( ref System.String strErr )
+        private System.Boolean SaveManagerList( ref System.String strErr )
         {
             System.Boolean bRet = false;
             try
@@ -164,8 +165,12 @@ namespace ERP_Budget.Common
                 CUser objUser = null;
                 System.Boolean bUserCanBeManager = false;
                 System.Boolean bUserCanBeCoordinator = false;
+                System.Boolean bUserCanBeController = false;
+                
                 System.Boolean bIsCoordinator = false;
                 System.Boolean bIsManager = false;
+                System.Boolean bIsController = false;
+                
                 List<CUser> objUserListForSave = new List<CUser>();
 
                 foreach( DevExpress.XtraTreeList.Nodes.TreeListNode objNode in treeList.Nodes)
@@ -175,23 +180,34 @@ namespace ERP_Budget.Common
                     objUser = (CUser)objNode.Tag;
                     objUser.IsBudgetDepCoordinator = false;
                     objUser.IsBudgetDepManager = false;
+                    objUser.IsBudgetDepController = false;
 
                     bUserCanBeManager = objUser.DynamicRightsList.FindByName( ERP_Budget.Global.Consts.strDRManager ).IsEnable;
                     bUserCanBeCoordinator = objUser.DynamicRightsList.FindByName( ERP_Budget.Global.Consts.strDRCoordinator ).IsEnable;
+                    bUserCanBeController = objUser.DynamicRightsList.FindByName(ERP_Budget.Global.Consts.strDRInspector).IsEnable;
 
                     bIsManager = System.Convert.ToBoolean(objNode.GetValue(colCheckManager));
                     bIsCoordinator = System.Convert.ToBoolean(objNode.GetValue(colCheckCoordinator));
+                    bIsController = System.Convert.ToBoolean(objNode.GetValue(colCheckController));
 
                     objUser.IsBudgetDepManager = ((bIsManager == true) && (bUserCanBeManager == true));
                     objUser.IsBudgetDepCoordinator = ((bIsCoordinator == true) && (bUserCanBeCoordinator == true));
+                    objUser.IsBudgetDepController = ((bIsController == true) && (bUserCanBeController == true));
 
-                    if( objUser.IsBudgetDepCoordinator || objUser.IsBudgetDepManager )
+                    if (objUser.IsBudgetDepCoordinator || objUser.IsBudgetDepManager || objUser.IsBudgetDepController )
                     {
                         objUserListForSave.Add( objUser );
                     }
                 }
 
-                bRet = CBudgetDep.SaveBudgetDepManagerList(m_objProfile, DocID, objUserListForSave, ref strErr); 
+                if( modeManagerList == enModeManagerList.BudgetDep )
+                {
+                    bRet = CBudgetDep.SaveBudgetDepManagerList(m_objProfile, DocID, objUserListForSave, ref strErr);
+                }
+                else if (modeManagerList == enModeManagerList.Budget)
+                {
+                    bRet = CBudget.SaveBudgetManagerList(m_objProfile, DocID, objUserListForSave, ref strErr);
+                }
 
             }
             catch (System.Exception f)
@@ -203,60 +219,6 @@ namespace ERP_Budget.Common
             }
             return bRet;
 
-        }
-
-        private System.Boolean SaveBudgetManagerList(ref System.String strErr)
-        {
-            System.Boolean bRet = false;
-            try
-            {
-                if ((treeList.Nodes.Count == 0) || (m_objManagerList == null) || (m_objManagerList.Count == 0))
-                {
-                    return bRet;
-                }
-
-                CUser objUser = null;
-                System.Boolean bUserCanBeManager = false;
-                System.Boolean bUserCanBeCoordinator = false;
-                System.Boolean bIsCoordinator = false;
-                System.Boolean bIsManager = false;
-                List<CUser> objUserListForSave = new List<CUser>();
-
-                foreach (DevExpress.XtraTreeList.Nodes.TreeListNode objNode in treeList.Nodes)
-                {
-                    if (objNode.Tag == null) { continue; }
-
-                    objUser = (CUser)objNode.Tag;
-                    objUser.IsBudgetDepCoordinator = false;
-                    objUser.IsBudgetDepManager = false;
-
-                    bUserCanBeManager = objUser.DynamicRightsList.FindByName(ERP_Budget.Global.Consts.strDRManager).IsEnable;
-                    bUserCanBeCoordinator = objUser.DynamicRightsList.FindByName(ERP_Budget.Global.Consts.strDRCoordinator).IsEnable;
-
-                    bIsManager = System.Convert.ToBoolean(objNode.GetValue(colCheckManager));
-                    bIsCoordinator = System.Convert.ToBoolean(objNode.GetValue(colCheckCoordinator));
-
-                    objUser.IsBudgetDepManager = ((bIsManager == true) && (bUserCanBeManager == true));
-                    objUser.IsBudgetDepCoordinator = ((bIsCoordinator == true) && (bUserCanBeCoordinator == true));
-
-                    if (objUser.IsBudgetDepCoordinator || objUser.IsBudgetDepManager)
-                    {
-                        objUserListForSave.Add(objUser);
-                    }
-                }
-
-                bRet = CBudget.SaveBudgetManagerList(m_objProfile, DocID, objUserListForSave, ref strErr);
-
-            }
-            catch (System.Exception f)
-            {
-                strErr += ("\nОшибка сохранения изменений в базе данных.\n" + f.Message);
-            }
-            finally
-            {
-            }
-
-            return bRet;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -265,16 +227,7 @@ namespace ERP_Budget.Common
             {
                 System.String strErr = System.String.Empty;
 
-                System.Boolean bRes = false;
-
-                if( modeManagerList == enModeManagerList.BudgetDep )
-                {
-                    bRes = SaveBudgetDepManagerList(ref strErr);
-                }
-                else if (modeManagerList == enModeManagerList.Budget)
-                {
-                    bRes = SaveBudgetManagerList(ref strErr);
-                }
+                System.Boolean bRes = SaveManagerList(ref strErr); 
 
                 if (bRes == true)
                 {
@@ -327,13 +280,14 @@ namespace ERP_Budget.Common
                 Brush brush = null;
                 Rectangle r = e.Bounds;
 
-                if( ( e.Column == colCheckManager ) || ( e.Column == colCheckCoordinator ) )
+                if ((e.Column == colCheckManager) || (e.Column == colCheckCoordinator) || (e.Column == colCheckController))
                 {
                     CUser objUser = ( ( e.Node.Tag == null ) ? null : (CUser)e.Node.Tag );
 
                     System.Boolean HasRightDepManager = ( ( objUser == null ) ? false : objUser.DynamicRightsList.FindByName( Global.Consts.strDRManager ).IsEnable );
                     System.Boolean HasRightCoordinator = ((objUser == null) ? false : objUser.DynamicRightsList.FindByName(Global.Consts.strDRCoordinator).IsEnable);
-                    System.Boolean IsBlocked = ( ( objUser == null ) ? false : objUser.IsBlocked );
+                    System.Boolean HasRightController = ((objUser == null) ? false : objUser.DynamicRightsList.FindByName(Global.Consts.strDRInspector).IsEnable);
+                    System.Boolean IsBlocked = ((objUser == null) ? false : objUser.IsBlocked);
 
                     if ((e.Column == colCheckManager) && ((HasRightDepManager == false) || (IsBlocked == true)))
                     {
@@ -341,6 +295,11 @@ namespace ERP_Budget.Common
                     }
 
                     if ((e.Column == colCheckCoordinator) && ((HasRightCoordinator == false) || (IsBlocked == true)))
+                    {
+                        brush = Brushes.Gray;
+                    }
+
+                    if ((e.Column == colCheckController) && ((HasRightController == false) || (IsBlocked == true)))
                     {
                         brush = Brushes.Gray;
                     }
@@ -383,6 +342,8 @@ namespace ERP_Budget.Common
 
                     System.Boolean HasRightDepManager = ((objUser == null) ? false : objUser.DynamicRightsList.FindByName(Global.Consts.strDRManager).IsEnable);
                     System.Boolean HasRightCoordinator = ((objUser == null) ? false : objUser.DynamicRightsList.FindByName(Global.Consts.strDRCoordinator).IsEnable);
+                    System.Boolean HasRightController = ((objUser == null) ? false : objUser.DynamicRightsList.FindByName(Global.Consts.strDRInspector).IsEnable);
+
                     System.Boolean IsBlocked = ((objUser == null) ? false : objUser.IsBlocked);
 
                     if ((e.Column == colCheckManager) && ((HasRightDepManager == false) || (IsBlocked == true)))
@@ -398,6 +359,14 @@ namespace ERP_Budget.Common
                         if (System.Convert.ToBoolean(e.Value) == true)
                         {
                             e.Node.SetValue(colCheckCoordinator, false);
+                        }
+                    }
+
+                    if ((e.Column == colCheckController) && ((HasRightController == false) || (IsBlocked == true)))
+                    {
+                        if (System.Convert.ToBoolean(e.Value) == true)
+                        {
+                            e.Node.SetValue(colCheckController, false);
                         }
                     }
 
@@ -422,11 +391,15 @@ namespace ERP_Budget.Common
 
                 System.Boolean HasRightDepManager = ((objUser == null) ? false : objUser.DynamicRightsList.FindByName(Global.Consts.strDRManager).IsEnable);
                 System.Boolean HasRightCoordinator = ((objUser == null) ? false : objUser.DynamicRightsList.FindByName(Global.Consts.strDRCoordinator).IsEnable);
+                System.Boolean HasRightController = ((objUser == null) ? false : objUser.DynamicRightsList.FindByName(Global.Consts.strDRInspector).IsEnable);
+
                 System.Boolean IsBlocked = ((objUser == null) ? false : objUser.IsBlocked);
 
                 colCheckManager.OptionsColumn.AllowFocus = ((HasRightDepManager == true) && (IsBlocked == false));
 
                 colCheckCoordinator.OptionsColumn.AllowFocus = ((HasRightCoordinator == true) && (IsBlocked == false));
+
+                colCheckController.OptionsColumn.AllowFocus = ((HasRightController == true) && (IsBlocked == false));
             }
             catch (System.Exception f)
             {

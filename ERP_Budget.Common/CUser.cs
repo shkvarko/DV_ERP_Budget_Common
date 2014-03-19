@@ -207,6 +207,7 @@ namespace ERP_Budget.Common
 
         public System.Boolean IsBudgetDepManager { get; set; }
         public System.Boolean IsBudgetDepCoordinator { get; set; }
+        public System.Boolean IsBudgetDepController { get; set; }
         public System.Boolean IsBlocked { get; set; }
 
         #endregion
@@ -229,6 +230,7 @@ namespace ERP_Budget.Common
             this.BudgetDocEventList = new List<CBudgetDocEvent>();
             IsBudgetDepManager = false;
             IsBudgetDepCoordinator = false;
+            IsBudgetDepController = false;
             IsBlocked = false;
         }
 
@@ -250,6 +252,7 @@ namespace ERP_Budget.Common
             this.BudgetDocEventList = new List<CBudgetDocEvent>();
             IsBudgetDepManager = false;
             IsBudgetDepCoordinator = false;
+            IsBudgetDepController = false;
             IsBlocked = false;
         }
         #endregion

@@ -1227,6 +1227,81 @@ namespace ERP_Budget.Common
         }
         #endregion
 
+        #region Список бюджетов для профайла
+        /// <summary>
+        /// Возвращает список бюджетов для отображения в ветке профайла
+        /// </summary>
+        /// <param name="objProfile">профайл</param>
+        /// <param name="UniXPUserID">УИ пользователя в БД "UniXP"</param>
+        /// <param name="strErr">текст ошибки</param>
+        /// <returns>список объектов класса "CBudget"</returns>
+        public static List<CBudget> GetBudgetListForProfile(UniXP.Common.CProfile objProfile,
+            System.Int32 UniXPUserID,  ref System.String strErr)
+        {
+            List<CBudget> objBudgetList = new List<CBudget>();
+
+            System.Data.SqlClient.SqlConnection DBConnection = objProfile.GetDBSource();
+            if (DBConnection == null)
+            {
+                strErr += ("\nОтсутствует соединение с базой данных.");
+
+                return objBudgetList;
+            }
+
+            try
+            {
+                // соединение с БД получено, прописываем команду на выборку данных
+                System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand()
+                {
+                    Connection = DBConnection,
+                    CommandType = System.Data.CommandType.StoredProcedure,
+                    CommandText = System.String.Format("[{0}].[dbo].[usp_GetBudgetListForProfile]", objProfile.GetOptionsDllDBName())
+                };
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@UniXPUserID", System.Data.SqlDbType.UniqueIdentifier, 4));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUMBER", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MESSAGE", System.Data.SqlDbType.NVarChar, 4000) { Direction = System.Data.ParameterDirection.Output });
+                cmd.Parameters["@UniXPUserID"].Value = UniXPUserID;
+                System.Data.SqlClient.SqlDataReader rs = cmd.ExecuteReader();
+                if (rs.HasRows)
+                {
+                    // набор данных непустой
+                    CBudget objBudget = null;
+                    while (rs.Read())
+                    {
+                        objBudget = new CBudget()
+                        {
+                            uuidID = (System.Guid)rs["Budget_Guid"],
+                            Name = System.Convert.ToString(rs["BUDGET_NAME"]),
+                            Date = System.Convert.ToDateTime(rs["BUDGET_DATE"]),
+                            BudgetDep = new CBudgetDep()
+                            {
+                                uuidID = (System.Guid)rs["BUDGETDEP_GUID_ID"],
+                                ParentID = ((rs["BUDGETDEP_GUID_ID"] != System.DBNull.Value) ? (System.Guid)rs["BUDGETDEP_GUID_ID"] : System.Guid.Empty ),
+                                Name = System.Convert.ToString(rs["BUDGETDEP_NAME"])
+                            }
+                        };
+
+                        objBudgetList.Add(objBudget);
+                    }
+                }
+                rs.Close();
+                rs.Dispose();
+                cmd.Dispose();
+            }
+            catch (System.Exception f)
+            {
+                strErr += ("\nНе удалось получить список бюджетов для профайла.\n\nТекст ошибки: " + f.Message);
+            }
+            finally // очищаем занимаемые ресурсы
+            {
+                DBConnection.Close();
+            }
+
+            return objBudgetList;
+        }
+        #endregion
+
         public override string ToString()
         {
             return Name;
