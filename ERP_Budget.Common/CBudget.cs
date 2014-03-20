@@ -1258,7 +1258,7 @@ namespace ERP_Budget.Common
                     CommandText = System.String.Format("[{0}].[dbo].[usp_GetBudgetListForProfile]", objProfile.GetOptionsDllDBName())
                 };
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
-                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@UniXPUserID", System.Data.SqlDbType.UniqueIdentifier, 4));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@UniXPUserID", System.Data.SqlDbType.Int, 4));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUMBER", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MESSAGE", System.Data.SqlDbType.NVarChar, 4000) { Direction = System.Data.ParameterDirection.Output });
                 cmd.Parameters["@UniXPUserID"].Value = UniXPUserID;
@@ -1277,7 +1277,7 @@ namespace ERP_Budget.Common
                             BudgetDep = new CBudgetDep()
                             {
                                 uuidID = (System.Guid)rs["BUDGETDEP_GUID_ID"],
-                                ParentID = ((rs["BUDGETDEP_GUID_ID"] != System.DBNull.Value) ? (System.Guid)rs["BUDGETDEP_GUID_ID"] : System.Guid.Empty ),
+                                ParentID = ((rs["PARENT_GUID_ID"] != System.DBNull.Value) ? (System.Guid)rs["PARENT_GUID_ID"] : System.Guid.Empty),
                                 Name = System.Convert.ToString(rs["BUDGETDEP_NAME"])
                             }
                         };

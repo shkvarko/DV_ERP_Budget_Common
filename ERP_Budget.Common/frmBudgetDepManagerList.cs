@@ -24,7 +24,7 @@ namespace ERP_Budget.Common
         public System.Guid DocID { get; set; }
         private List<CUser> m_objManagerList;
         private enModeManagerList modeManagerList;
-        private const string strCaptionForm = "Согласователи и дополнительные распорядители";
+        private const string strCaptionForm = "Разграничение доступа";
         #endregion
 
         #region Конструктор
@@ -291,17 +291,17 @@ namespace ERP_Budget.Common
 
                     if ((e.Column == colCheckManager) && ((HasRightDepManager == false) || (IsBlocked == true)))
                     {
-                        brush = Brushes.Gray;
+                        brush = Brushes.LightGray;
                     }
 
                     if ((e.Column == colCheckCoordinator) && ((HasRightCoordinator == false) || (IsBlocked == true)))
                     {
-                        brush = Brushes.Gray;
+                        brush = Brushes.LightGray;
                     }
 
                     if ((e.Column == colCheckController) && ((HasRightController == false) || (IsBlocked == true)))
                     {
-                        brush = Brushes.Gray;
+                        brush = Brushes.LightGray;
                     }
                 }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace ERP_Budget.Common
 {
@@ -227,6 +228,7 @@ namespace ERP_Budget.Common
                         objBudgetDep = new CBudgetDep();
                         objBudgetDep.m_uuidID = (System.Guid)rs["GUID_ID"];
                         objBudgetDep.m_strName = (System.String)rs["BUDGETDEP_NAME"];
+
                         if (rs["PARENT_GUID_ID"] != System.DBNull.Value) { objBudgetDep.m_uuidParentID = (System.Guid)rs["PARENT_GUID_ID"]; }
                         
                         objBudgetDep.m_Manager = new CUser();
@@ -235,10 +237,10 @@ namespace ERP_Budget.Common
 
                         objBudgetDep.m_bReadOnly = (System.Boolean)rs["ISREADONLY"];
                         objBudgetDep.m_bHasChildren = (System.Boolean)rs["HASCHILDREN"];
-                        if (rs["PARENT_GUID_ID"] != System.DBNull.Value)
-                        {
-                            objBudgetDep.ParentID = (System.Guid)rs["PARENT_GUID_ID"];
-                        }
+                        //if (rs["PARENT_GUID_ID"] != System.DBNull.Value)
+                        //{
+                        //    objBudgetDep.ParentID = (System.Guid)rs["PARENT_GUID_ID"];
+                        //}
                         objList.Add(objBudgetDep);
                     }
                 }
@@ -2183,175 +2185,6 @@ namespace ERP_Budget.Common
             }
 
             return bRet;
-        }
-
-        #endregion
-
-        #region Дерево подразделений
-
-        public static System.Windows.Forms.TreeNode CreateBudgetDepNode(System.Windows.Forms.TreeNode objParentNode,
-            CBudgetDep objBudgetDep, List<CBudgetDep> objBudgetDepList, UniXP.Common.MENUITEM objMenuItem)
-        {
-            System.Windows.Forms.TreeNode objRetNode = null;
-            UniXP.Common.MENUITEM objMenuNode = null;
-            try
-            {
-                if (objBudgetDep.ParentID.CompareTo(System.Guid.Empty) == 0)
-                {
-                    System.Boolean bExistsChildDepart = false;
-                    foreach (System.Windows.Forms.TreeNode objNodeItem in objParentNode.Nodes)
-                    {
-                        if (objNodeItem.Text == objBudgetDep.Name)
-                        {
-                            bExistsChildDepart = true;
-                            objRetNode = objNodeItem;
-                            break;
-                        }
-                    }
-                    if (bExistsChildDepart == false)
-                    {
-                        objMenuNode = new UniXP.Common.MENUITEM();
-                        objMenuNode.enMenuType = objMenuItem.enMenuType;
-                        objMenuNode.strName = objBudgetDep.Name;
-                        objMenuNode.lClassID = 1;
-                        objMenuNode.uuidFarClient = objMenuItem.uuidFarClient;
-                        objMenuNode.strDescription = objBudgetDep.Name;
-                        objMenuNode.nImage = objMenuItem.nImage;
-                        objMenuNode.strDLLName = objMenuItem.strDLLName;
-                        objMenuNode.enCmdType = objMenuItem.enCmdType;
-                        objMenuNode.enDLLType = objMenuItem.enDLLType;
-                        objMenuNode.objProfile = objMenuItem.objProfile;
-                        objMenuNode.objAdvancedParametr = null;
-
-                        objRetNode = new System.Windows.Forms.TreeNode();
-                        objRetNode.Text = objMenuNode.strName;
-                        objRetNode.ImageIndex = objMenuItem.nImage;
-                        objRetNode.SelectedImageIndex = objMenuItem.nImage;
-                        objRetNode.Tag = objMenuNode;
-
-                        objParentNode.Nodes.Add(objRetNode);
-                    }
-
-
-                }
-                else
-                {
-                    List<CBudgetDep> objParentDepartmentList = new List<CBudgetDep>();
-                    System.Guid ParentID = objBudgetDep.ParentID;
-                    CBudgetDep objParentBudgetDep = null;
-                    while (ParentID.CompareTo(System.Guid.Empty) != 0)
-                    {
-                        objParentBudgetDep = null;
-                        foreach (CBudgetDep objItem in objBudgetDepList)
-                        {
-                            if (objItem.uuidID.CompareTo(ParentID) == 0)
-                            {
-                                objParentBudgetDep = objItem;
-                                break;
-                            }
-                        }
-                        if (objParentBudgetDep != null)
-                        {
-                            objParentDepartmentList.Add(objParentBudgetDep);
-                            ParentID = objParentBudgetDep.ParentID;
-                        }
-                        else
-                        {
-                            ParentID = System.Guid.Empty;
-                        }
-                    }
-                    // теперь у нас есть все службы из ветки
-                    System.Int32 iDepCount = objParentDepartmentList.Count;
-                    System.Windows.Forms.TreeNode objNodeDep = null;
-                    System.Windows.Forms.TreeNode objNodeDepParent = objParentNode;
-                    for (System.Int32 i = (iDepCount - 1); i >= 0; i--)
-                    {
-                        foreach (System.Windows.Forms.TreeNode objNodeItem in objNodeDepParent.Nodes)
-                        {
-                            if (objNodeItem.Text == objParentDepartmentList[i].Name)
-                            {
-                                objNodeDep = objNodeItem;
-                                break;
-                            }
-                        }
-                        if (objNodeDep == null)
-                        {
-                            objMenuNode = new UniXP.Common.MENUITEM();
-                            objMenuNode.enMenuType = objMenuItem.enMenuType;
-                            objMenuNode.strName = objParentDepartmentList[i].Name;
-                            objMenuNode.lClassID = 1;
-                            objMenuNode.uuidFarClient = objMenuItem.uuidFarClient;
-                            objMenuNode.strDescription = objParentDepartmentList[i].Name;
-                            objMenuNode.nImage = objMenuItem.nImage;
-                            objMenuNode.strDLLName = objMenuItem.strDLLName;
-                            objMenuNode.enCmdType = objMenuItem.enCmdType;
-                            objMenuNode.enDLLType = objMenuItem.enDLLType;
-                            objMenuNode.objProfile = objMenuItem.objProfile;
-                            objMenuNode.objAdvancedParametr = null;
-
-                            objNodeDep = new System.Windows.Forms.TreeNode();
-                            objNodeDep.Text = objMenuNode.strName;
-                            objNodeDep.ImageIndex = objMenuItem.nImage;
-                            objNodeDep.SelectedImageIndex = objMenuItem.nImage;
-                            objNodeDep.Tag = objMenuNode;
-
-                            objNodeDepParent.Nodes.Add(objNodeDep);
-                            objNodeDepParent = objNodeDep;
-                        }
-                        else
-                        {
-                            objNodeDepParent = objNodeDep;
-                        }
-                        if (i == 0)
-                        {
-                            System.Boolean bExistsChildDepart = false;
-                            foreach (System.Windows.Forms.TreeNode objNodeItem in objNodeDepParent.Nodes)
-                            {
-                                if (objNodeItem.Text == objBudgetDep.Name)
-                                {
-                                    bExistsChildDepart = true;
-                                    objRetNode = objNodeItem;
-                                    break;
-                                }
-                            }
-                            if (bExistsChildDepart == false)
-                            {
-                                objMenuNode = new UniXP.Common.MENUITEM();
-                                objMenuNode.enMenuType = objMenuItem.enMenuType;
-                                objMenuNode.strName = objBudgetDep.Name;
-                                objMenuNode.lClassID = 1;
-                                objMenuNode.uuidFarClient = objMenuItem.uuidFarClient;
-                                objMenuNode.strDescription = objBudgetDep.Name;
-                                objMenuNode.nImage = objMenuItem.nImage;
-                                objMenuNode.strDLLName = objMenuItem.strDLLName;
-                                objMenuNode.enCmdType = objMenuItem.enCmdType;
-                                objMenuNode.enDLLType = objMenuItem.enDLLType;
-                                objMenuNode.objProfile = objMenuItem.objProfile;
-                                objMenuNode.objAdvancedParametr = null;
-
-                                System.Windows.Forms.TreeNode objNodeDepChild = new System.Windows.Forms.TreeNode();
-                                objNodeDepChild.Text = objMenuNode.strName;
-                                objNodeDepChild.ImageIndex = objMenuItem.nImage;
-                                objNodeDepChild.SelectedImageIndex = objMenuItem.nImage;
-                                objNodeDepChild.Tag = objMenuNode;
-                                objNodeDepParent.Nodes.Add(objNodeDepChild);
-
-                                objRetNode = objNodeDepChild;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (System.Exception e)
-            {
-                DevExpress.XtraEditors.XtraMessageBox.Show(
-                "Ошибка создания дерева служб.\n\nТекст ошибки: " + e.Message, "Внимание",
-                System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
-            }
-			finally // очищаем занимаемые ресурсы
-            {
-            }
-            return objRetNode;
         }
 
         #endregion

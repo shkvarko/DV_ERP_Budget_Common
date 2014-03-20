@@ -36,6 +36,7 @@
             this.colCheckManager = new DevExpress.XtraTreeList.Columns.TreeListColumn();
             this.repItemChecked = new DevExpress.XtraEditors.Repository.RepositoryItemCheckEdit();
             this.colCheckCoordinator = new DevExpress.XtraTreeList.Columns.TreeListColumn();
+            this.colCheckController = new DevExpress.XtraTreeList.Columns.TreeListColumn();
             this.repItemCheckEdit_ReadOnly = new DevExpress.XtraEditors.Repository.RepositoryItemCheckEdit();
             this.repositoryItemMemoExEdit1 = new DevExpress.XtraEditors.Repository.RepositoryItemMemoExEdit();
             this.repItemlkpBudgetDep = new DevExpress.XtraEditors.Repository.RepositoryItemLookUpEdit();
@@ -46,7 +47,6 @@
             this.btnCancel = new DevExpress.XtraEditors.SimpleButton();
             this.labelInfo = new DevExpress.XtraEditors.LabelControl();
             this.imglNodes = new System.Windows.Forms.ImageList(this.components);
-            this.colCheckController = new DevExpress.XtraTreeList.Columns.TreeListColumn();
             this.tableLayoutPanelBackGround.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.treeList)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.repItemChecked)).BeginInit();
@@ -157,6 +157,17 @@
             this.colCheckCoordinator.VisibleIndex = 2;
             this.colCheckCoordinator.Width = 92;
             // 
+            // colCheckController
+            // 
+            this.colCheckController.Caption = "Контролер";
+            this.colCheckController.ColumnEdit = this.repItemChecked;
+            this.colCheckController.FieldName = "Контролер";
+            this.colCheckController.Name = "colCheckController";
+            this.colCheckController.OptionsColumn.AllowSort = false;
+            this.colCheckController.Visible = true;
+            this.colCheckController.VisibleIndex = 3;
+            this.colCheckController.Width = 80;
+            // 
             // repItemCheckEdit_ReadOnly
             // 
             this.repItemCheckEdit_ReadOnly.AutoHeight = false;
@@ -211,6 +222,7 @@
             // btnSave
             // 
             this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSave.Image = global::ERP_Budget.Common.Properties.Resources.disk_blue_ok;
             this.btnSave.Location = new System.Drawing.Point(403, 4);
             this.btnSave.Margin = new System.Windows.Forms.Padding(2);
             this.btnSave.Name = "btnSave";
@@ -223,6 +235,7 @@
             // btnCancel
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCancel.Image = global::ERP_Budget.Common.Properties.Resources.delete2;
             this.btnCancel.Location = new System.Drawing.Point(484, 4);
             this.btnCancel.Margin = new System.Windows.Forms.Padding(2);
             this.btnCancel.Name = "btnCancel";
@@ -248,16 +261,6 @@
             this.imglNodes.TransparentColor = System.Drawing.Color.Magenta;
             this.imglNodes.Images.SetKeyName(0, "ok_16.png");
             this.imglNodes.Images.SetKeyName(1, "warning.png");
-            // 
-            // colCheckController
-            // 
-            this.colCheckController.Caption = "Контролер";
-            this.colCheckController.FieldName = "Контролер";
-            this.colCheckController.Name = "colCheckController";
-            this.colCheckController.OptionsColumn.AllowSort = false;
-            this.colCheckController.Visible = true;
-            this.colCheckController.VisibleIndex = 3;
-            this.colCheckController.Width = 80;
             // 
             // frmBudgetDepManagerList
             // 
