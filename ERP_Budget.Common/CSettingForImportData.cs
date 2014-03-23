@@ -6,6 +6,13 @@ using System.ComponentModel;
 
 namespace ERP_Budget.Common
 {
+    public enum enumSettingsType
+    {
+        Unkown = -1,
+        DebitArticle = 0,
+        BudgetEditor = 1
+    }
+    
     public class CSettingItemForImportData
     {
         #region Свойства
@@ -87,8 +94,53 @@ namespace ERP_Budget.Common
         /// </summary>
         /// <param name="objProfile">профайл</param>
         /// <param name="cmdSQL">SQL-команда</param>
-        /// <returns>список настроек</returns>
+        /// <returns>объект класса "CSettingForImportData"</returns>
         public static CSettingForImportData GetSettingForImportDataInDebitArticle(UniXP.Common.CProfile objProfile, System.Data.SqlClient.SqlCommand cmdSQL)
+        {
+            CSettingForImportData objRet = null;
+            System.String strErr = System.String.Empty;
+            try
+            {
+                objRet = GetSettingForImportData(enumSettingsType.DebitArticle, objProfile, cmdSQL, ref strErr);
+            }
+            catch (System.Exception f)
+            {
+                DevExpress.XtraEditors.XtraMessageBox.Show(
+                "Не удалось получить список настроек.\n\nТекст ошибки: " + f.Message, "Внимание",
+                System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+            return objRet;
+        }
+        /// <summary>
+        /// Возвращает настройки для импорта данных в бюджет подразделения
+        /// </summary>
+        /// <param name="objProfile">профайл</param>
+        /// <param name="cmdSQL">SQL-команда</param>
+        /// <returns>объект класса "CSettingForImportData"</returns>
+        public static CSettingForImportData GetSettingForImportDataInBudgetEditor(UniXP.Common.CProfile objProfile,
+            System.Data.SqlClient.SqlCommand cmdSQL, ref System.String strErr )
+        {
+            CSettingForImportData objRet = null;
+            try
+            {
+                objRet = GetSettingForImportData(enumSettingsType.BudgetEditor, objProfile, cmdSQL, ref strErr);
+            }
+            catch (System.Exception f)
+            {
+                strErr += ( "Не удалось получить список настроек.\n\nТекст ошибки: " + f.Message );
+            }
+            return objRet;
+        }
+        /// <summary>
+        /// возвращает список настроек для импорта данных
+        /// </summary>
+        /// <param name="enSettingsType">вариант импорта</param>
+        /// <param name="objProfile">профайл</param>
+        /// <param name="cmdSQL">SQL-команда</param>
+        /// <param name="strErr">текст ошибки</param>
+        /// <returns>объект класса "CSettingForImportData"</returns>
+        public static CSettingForImportData GetSettingForImportData( enumSettingsType enSettingsType, 
+            UniXP.Common.CProfile objProfile, System.Data.SqlClient.SqlCommand cmdSQL, ref System.String strErr)
         {
             CSettingForImportData objRet = null;
             System.Data.SqlClient.SqlConnection DBConnection = null;
@@ -100,9 +152,7 @@ namespace ERP_Budget.Common
                     DBConnection = objProfile.GetDBSource();
                     if (DBConnection == null)
                     {
-                        DevExpress.XtraEditors.XtraMessageBox.Show(
-                            "Не удалось получить соединение с базой данных.", "Внимание",
-                            System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+                        strErr += ("Не удалось получить соединение с базой данных.");
                         return objRet;
                     }
                     cmd = new System.Data.SqlClient.SqlCommand();
@@ -115,7 +165,25 @@ namespace ERP_Budget.Common
                     cmd.Parameters.Clear();
                 }
 
-                cmd.CommandText = System.String.Format("[{0}].[dbo].[usp_GetSettingsForImportDataInDebitArticle]", objProfile.GetOptionsDllDBName());
+                switch (enSettingsType)
+                {
+                    case enumSettingsType.DebitArticle:
+                        cmd.CommandText = System.String.Format("[{0}].[dbo].[usp_GetSettingsForImportDataInDebitArticle]", objProfile.GetOptionsDllDBName());
+                        break;
+                    case enumSettingsType.BudgetEditor:
+                        cmd.CommandText = System.String.Format("[{0}].[dbo].[usp_GetSettingsForImportDataInBudgetEditor]", objProfile.GetOptionsDllDBName());
+                        break;
+                    default:
+                        cmd.CommandText = System.String.Empty;
+                        break;
+                }
+
+                if (cmd.CommandText.Trim().Length == 0)
+                {
+                    strErr += ("Не удалось определить текст запроса.");
+                    return objRet;
+                }
+
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUM", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MES", System.Data.SqlDbType.NVarChar, 4000));
@@ -163,13 +231,10 @@ namespace ERP_Budget.Common
             }
             catch (System.Exception f)
             {
-                DevExpress.XtraEditors.XtraMessageBox.Show(
-                "Не удалось получить список настроек.\n\nТекст ошибки: " + f.Message, "Внимание",
-                System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+                strErr += ("Не удалось получить список настроек.\n\nТекст ошибки: " + f.Message);
             }
             return objRet;
         }
-
         #endregion
 
         #region Сохранение настроек в базе данных

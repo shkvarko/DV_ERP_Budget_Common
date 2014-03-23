@@ -367,6 +367,7 @@ namespace ERP_Budget.Common
                         if (rs["PARENT_GUID_ID"] != System.DBNull.Value) { objBudgetDep.m_uuidParentID = (System.Guid)rs["PARENT_GUID_ID"]; }
                         objBudgetDep.m_Manager = new CUser();
                         objBudgetDep.m_Manager.ulID = (System.Int32)rs["BUDGETDEP_MANAGER"];
+                        objBudgetDep.m_Manager.ulUniXPID = (System.Int32)rs["ulUniXPID"];
 
                         if( bInitManager == true )
                         {
