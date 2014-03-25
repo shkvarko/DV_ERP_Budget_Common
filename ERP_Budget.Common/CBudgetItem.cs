@@ -343,6 +343,91 @@ namespace ERP_Budget.Common
 
             return iRet;
         }
+        /// <summary>
+        /// Сохраняет информацию о расшифровке в БД
+        /// </summary>
+        /// <param name="objBudgetItemDecode">расшифровка статьи бюджета</param>
+        /// <param name="cmd">SQL-команда</param>
+        /// <param name="objProfile">профайл</param>
+        /// <param name="uuidBudgetID">уи бюджета</param>
+        /// <param name="uuidDebitArticleID">уи статьи расходов</param>
+        /// <returns>true - успешное завершение; false - ошибка</returns>
+        public static System.Boolean SaveBudgetItemDecode( CBudgetItemDecode objBudgetItemDecode, System.Data.SqlClient.SqlCommand cmd,
+            UniXP.Common.CProfile objProfile, System.Guid uuidBudgetItemID, ref System.String strErr)
+        {
+            System.Boolean bRet = false;
+            if (uuidBudgetItemID.CompareTo(System.Guid.Empty) == 0)
+            {
+                strErr +=("Уникальный идентификатор статьи бюджета не должен быть пуст.");
+                return bRet;
+            }
+            if (cmd == null)
+            {
+                strErr +=("Отсутствует соединение с БД.");
+                return bRet;
+            }
+
+            try
+            {
+                cmd.Parameters.Clear();
+                cmd.CommandText = System.String.Format("[{0}].[dbo].[sp_SaveBudgetItemDecode]", objProfile.GetOptionsDllDBName());
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEM_GUID_ID", System.Data.SqlDbType.UniqueIdentifier));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEMDECODE_MONTH_ID", System.Data.SqlDbType.Int));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEMDECODE_MONEYPLAN", System.Data.SqlDbType.Money));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEMDECODE_DESCRIPTION", System.Data.SqlDbType.Text));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUMBER", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MESSAGE", System.Data.SqlDbType.NVarChar, 4000));
+                cmd.Parameters["@ERROR_MESSAGE"].Direction = System.Data.ParameterDirection.Output;
+                if ( objBudgetItemDecode.Currency != null)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@CURRENCY_GUID_ID", System.Data.SqlDbType.UniqueIdentifier));
+                    cmd.Parameters["@CURRENCY_GUID_ID"].Value = objBudgetItemDecode.Currency.uuidID;
+                }
+                cmd.Parameters["@BUDGETITEM_GUID_ID"].Value = uuidBudgetItemID;
+                cmd.Parameters["@BUDGETITEMDECODE_MONTH_ID"].Value = (System.Int32)objBudgetItemDecode.Month;
+                cmd.Parameters["@BUDGETITEMDECODE_MONEYPLAN"].Value = objBudgetItemDecode.MoneyPlan;
+                cmd.Parameters["@BUDGETITEMDECODE_DESCRIPTION"].Value = objBudgetItemDecode.Description;
+
+                cmd.ExecuteNonQuery();
+                System.Int32 iRet = (System.Int32)cmd.Parameters["@RETURN_VALUE"].Value;
+
+                if (iRet != 0)
+                {
+                    switch (iRet)
+                    {
+                        case 1:
+                            {
+                                strErr += (String.Format("Ошибка сохранения расшифровки статьи бюджета.\n\nCтатья бюджета с заданным идентификатором не найдена: {0}", uuidBudgetItemID));
+                                break;
+                            }
+                        case 2:
+                            {
+                                strErr += (String.Format("Ошибка сохранения расшифровки статьи бюджета.\n\nНеверно указан месяц: {0}", objBudgetItemDecode.MonthTranslateRu));
+                                break;
+                            }
+                        case 3:
+                            {
+                                strErr += (String.Format("Ошибка сохранения расшифровки статьи бюджета.\n\nВалюта с заданным идентификатором не найдена: {0}", objBudgetItemDecode.Currency.uuidID));
+                                break;
+                            }
+                        default:
+                            {
+                                strErr += (String.Format("Ошибка сохранения расшифровки статьи бюджета.\n\nТекст ошибки: {0}", (System.String)cmd.Parameters["@ERROR_MESSAGE"].Value));
+                                break;
+                            }
+                    }
+                }
+
+                bRet = (iRet == 0);
+            }
+            catch (System.Exception f)
+            {
+                strErr += (String.Format("Ошибка сохранения расшифровки статьи бюджета.\nУИ статьи бюджета : {0}\nМесяц: {1}\n\nТекст ошибки: {2}", uuidBudgetItemID, objBudgetItemDecode.MonthTranslateRu, f.Message));
+            }
+
+            return bRet;
+        }
 
         /// <summary>
         /// Сохраняет информацию о расшифровке в БД
@@ -1060,6 +1145,12 @@ namespace ERP_Budget.Common
         #endregion
 
         #region Список расшифровок статьи бюджета *
+
+        public void DeleteDecodeList()
+        {
+            m_BudgetItemDecodeList = null;
+        }
+
         /// <summary>
         /// Очищает список расшифровок статьи бюджета
         /// </summary>
@@ -1957,6 +2048,116 @@ namespace ERP_Budget.Common
 
             return bRet;
         }
+
+        /// <summary>
+        /// добавляет статью в бюджет
+        /// </summary>
+        /// <param name="objBudgetItem">статья бюджета</param>
+        /// <param name="objProfile">профайл</param>
+        /// <param name="cmdSQL">SQL-команда</param>
+        /// <param name="strErr">текст ошибки</param>
+        /// <returns>true - удачное завершение операции; false - ошибка</returns>
+        public static System.Boolean AddBudgetItemToDB( CBudgetItem objBudgetItem, UniXP.Common.CProfile objProfile,
+            System.Data.SqlClient.SqlCommand cmdSQL, ref System.String strErr)
+        {
+            System.Boolean bRet = false;
+
+            System.Data.SqlClient.SqlConnection DBConnection = null;
+            System.Data.SqlClient.SqlCommand cmd = null;
+            try
+            {
+                if (cmdSQL == null)
+                {
+                    DBConnection = objProfile.GetDBSource();
+                    if (DBConnection == null)
+                    {
+                        strErr += ("Не удалось получить соединение с базой данных.");
+                        return bRet;
+                    }
+                    cmd = new System.Data.SqlClient.SqlCommand();
+                    cmd.Connection = DBConnection;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                }
+                else
+                {
+                    cmd = cmdSQL;
+                    cmd.Parameters.Clear();
+                }
+
+                cmd.Parameters.Clear();
+                cmd.CommandText = System.String.Format("[{0}].[dbo].[sp_AddBudgetItem]", objProfile.GetOptionsDllDBName());
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@GUID_ID", System.Data.SqlDbType.UniqueIdentifier, 4, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGET_GUID_ID", System.Data.SqlDbType.UniqueIdentifier));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEM_NAME", System.Data.DbType.String));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEM_NUM", System.Data.DbType.String));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEM_ID", System.Data.SqlDbType.Int));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEM_TRANSPORTREST", System.Data.DbType.Boolean));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEM_DONTCHANGE", System.Data.DbType.Boolean));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUMBER", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MESSAGE", System.Data.SqlDbType.NVarChar, 4000));
+                cmd.Parameters["@ERROR_MESSAGE"].Direction = System.Data.ParameterDirection.Output;
+                cmd.Parameters["@BUDGET_GUID_ID"].Value = objBudgetItem.BudgetGUID;
+                cmd.Parameters["@BUDGETITEM_NAME"].Value = objBudgetItem.Name;
+                cmd.Parameters["@BUDGETITEM_NUM"].Value = objBudgetItem.BudgetItemNum;
+                cmd.Parameters["@BUDGETITEM_TRANSPORTREST"].Value = objBudgetItem.TransprtRest;
+                cmd.Parameters["@BUDGETITEM_DONTCHANGE"].Value = objBudgetItem.DontChange;
+                cmd.Parameters["@BUDGETITEM_ID"].Value = objBudgetItem.m_iBudgetItemID;
+                if (objBudgetItem.uuidID.CompareTo(System.Guid.Empty) != 0)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEM_GUID_ID", System.Data.SqlDbType.UniqueIdentifier));
+                    cmd.Parameters["@BUDGETITEM_GUID_ID"].Value = objBudgetItem.uuidID;
+                }
+                if (objBudgetItem.DebitArticleID.CompareTo(System.Guid.Empty) != 0)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@DEBITARTICLE_GUID_ID", System.Data.SqlDbType.UniqueIdentifier));
+                    cmd.Parameters["@DEBITARTICLE_GUID_ID"].Value = objBudgetItem.DebitArticleID;
+                }
+                if ( objBudgetItem.ParentID.CompareTo(System.Guid.Empty) != 0)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@PARENT_GUID_ID", System.Data.SqlDbType.UniqueIdentifier));
+                    cmd.Parameters["@PARENT_GUID_ID"].Value = objBudgetItem.ParentID;
+                }
+                if (objBudgetItem.BudgetItemDescription.Length > 0)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETITEM_DESCRIPTION", System.Data.DbType.String));
+                    cmd.Parameters["@BUDGETITEM_DESCRIPTION"].Value = objBudgetItem.BudgetItemDescription;
+                }
+                if (objBudgetItem.BudgetExpenseType != null)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGETEXPENSETYPE_GUID", System.Data.SqlDbType.UniqueIdentifier));
+                    cmd.Parameters["@BUDGETEXPENSETYPE_GUID"].Value = objBudgetItem.BudgetExpenseType.uuidID;
+                }
+                if (objBudgetItem.AccountPlan != null)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ACCOUNTPLAN_GUID", System.Data.SqlDbType.UniqueIdentifier));
+                    cmd.Parameters["@ACCOUNTPLAN_GUID"].Value = objBudgetItem.AccountPlan.uuidID;
+                }
+
+                cmd.ExecuteNonQuery();
+                System.Int32 iRet = (System.Int32)cmd.Parameters["@RETURN_VALUE"].Value;
+                if (iRet == 0)
+                {
+                    bRet = true;
+                }
+                else
+                {
+                    strErr += (String.Format("Не удалось создать статью бюджета.\n\nТекст ошибки: {0}", (System.String)cmd.Parameters["@ERROR_MESSAGE"].Value));
+                }
+
+                if (cmdSQL == null)
+                {
+                    cmd.Dispose();
+                    DBConnection.Close();
+                }
+            }
+            catch (System.Exception f)
+            {
+                strErr += (String.Format("\nНе удалось сохранить в БД статью бюджета.\nТекст ошибки: {0}", f.Message));
+            }
+            return bRet;
+        }
+
         #endregion
 
         #region Update *

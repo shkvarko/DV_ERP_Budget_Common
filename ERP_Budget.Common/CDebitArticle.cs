@@ -148,6 +148,10 @@ namespace ERP_Budget.Common
         /// счёт
         /// </summary>
         public CAccountPlan AccountPlan { get; set; }
+        /// <summary>
+        /// тип расходов
+        /// </summary>
+        public CBudgetExpenseType BudgetExpenseType { get; set; }
         #endregion
 
         #region Конструкторы
@@ -166,6 +170,7 @@ namespace ERP_Budget.Common
             this.m_iArticleID = 0;
             this.m_iYear = 0;
             AccountPlan = null;
+            BudgetExpenseType = null;
         }
 
         public CDebitArticle( System.Guid uuidID )
@@ -183,6 +188,7 @@ namespace ERP_Budget.Common
             this.m_iArticleID = 0;
             this.m_iYear = 0;
             AccountPlan = null;
+            BudgetExpenseType = null;
         }
 
         public CDebitArticle( System.Guid uuidID, System.String strArticleNum, System.String m_strName )
@@ -200,6 +206,7 @@ namespace ERP_Budget.Common
             this.m_iArticleID = 0;
             this.m_iYear = 0;
             AccountPlan = null;
+            BudgetExpenseType = null;
         }
 
         #endregion
@@ -312,6 +319,103 @@ namespace ERP_Budget.Common
             }
             return objList;
         }
+        /// <summary>
+        /// Возвращает список статей расходов, удовлетворяющих заданным параметрам
+        /// </summary>
+        /// <param name="objProfile">профайл</param>
+        /// <param name="BudgetDep_Guid">УИ бюджетного подразделения</param>
+        /// <param name="DebitArticle_Num">№ статьи расходов</param>
+        /// <param name="DebitArticle_Name">Наименование статьи расходов</param>
+        /// <param name="PeriodBeginDate">Период действия статьи расходов</param>
+        /// <param name="strErr">текст ошибки</param>
+        /// <returns>список объектов класса "CDebitArticle"</returns>
+        public static List<CDebitArticle> GetDebitArticleList(UniXP.Common.CProfile objProfile, System.Guid BudgetDep_Guid,
+            System.String DebitArticle_Num, System.String DebitArticle_Name, System.DateTime PeriodBeginDate, ref System.String strErr )
+        {
+
+            List<CDebitArticle> objList = new List<CDebitArticle>();
+            System.Data.SqlClient.SqlConnection DBConnection = objProfile.GetDBSource();
+            if (DBConnection == null) 
+            { 
+                strErr += ("\nНе удалось получить подключение к БД.");
+                return objList; 
+            }
+
+            try
+            {
+                // соединение с БД получено, прописываем команду на выборку данных
+                System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand()
+                {
+                    Connection = DBConnection,
+                    CommandType = System.Data.CommandType.StoredProcedure,
+                    CommandText = System.String.Format("[{0}].[dbo].[usp_GetDebitArticleByNumNamePeriodBudgetDep]",
+                        objProfile.GetOptionsDllDBName())
+                };
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BudgetDep_Guid", System.Data.SqlDbType.UniqueIdentifier));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@DebitArticle_Num", System.Data.DbType.String));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@DebitArticle_Name", System.Data.DbType.String));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@PeriodBeginDate", System.Data.SqlDbType.DateTime));
+
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUMBER", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MESSAGE", System.Data.SqlDbType.NVarChar, 4000) { Direction = System.Data.ParameterDirection.Output });
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+
+                cmd.Parameters["@BudgetDep_Guid"].Value = BudgetDep_Guid;
+                cmd.Parameters["@DebitArticle_Num"].Value = DebitArticle_Num;
+                cmd.Parameters["@DebitArticle_Name"].Value = DebitArticle_Name;
+                cmd.Parameters["@PeriodBeginDate"].Value = PeriodBeginDate;
+                
+                System.Data.SqlClient.SqlDataReader rs = cmd.ExecuteReader();
+                if (rs.HasRows)
+                {
+                    while (rs.Read())
+                    {
+                        objList.Add(
+                            new CDebitArticle()
+                            {
+                                uuidID = (System.Guid)rs["GUID_ID"],
+                                ArticleNum = System.Convert.ToString(rs["DEBITARTICLE_NUM"]),
+                                Name = System.Convert.ToString(rs["DEBITARTICLE_NAME"]),
+                                FinancislYear = PeriodBeginDate.Year,
+                                ParentID = ((rs["PARENT_GUID_ID"] != System.DBNull.Value) ? (System.Guid)rs["PARENT_GUID_ID"] : System.Guid.Empty),
+                                ArticleDescription = ((rs["DEBITARTICLE_DESCRIPTION"] != System.DBNull.Value) ? System.Convert.ToString(rs["DEBITARTICLE_DESCRIPTION"]) : ""),
+                                TransprtRest = ((rs["DEBITARTICLE_TRANSPORTREST"] != System.DBNull.Value) ? System.Convert.ToBoolean(rs["DEBITARTICLE_TRANSPORTREST"]) : false),
+                                DontChange = ((rs["DEBITARTICLE_DONTCHANGE"] != System.DBNull.Value) ? System.Convert.ToBoolean(rs["DEBITARTICLE_DONTCHANGE"]) : false),
+                                ArticleID = System.Convert.ToInt32(rs["DEBITARTICLE_ID"]),
+                                AccountPlan = ((rs["ACCOUNTPLAN_GUID"] != System.DBNull.Value) ? new CAccountPlan()
+                                {
+                                    uuidID = (System.Guid)rs["ACCOUNTPLAN_GUID"],
+                                    Name = System.Convert.ToString(rs["ACCOUNTPLAN_NAME"]),
+                                    IsActive = System.Convert.ToBoolean(rs["ACCOUNTPLAN_ACTIVE"]),
+                                    CodeIn1C = System.Convert.ToString(rs["ACCOUNTPLAN_1C_CODE"])
+                                } : null), 
+                                BudgetExpenseType = ((rs["BUDGETEXPENSETYPE_GUID"] != System.DBNull.Value) ? new CBudgetExpenseType()
+                                {
+                                    uuidID = (System.Guid)rs["BUDGETEXPENSETYPE_GUID"], 
+                                    Name = System.Convert.ToString(rs["BUDGETEXPENSETYPE_NAME"]), 
+                                    IsActive = System.Convert.ToBoolean(rs["BUDGETEXPENSETYPE_ACTIVE"])
+                                } : null)
+                            }
+                            );
+
+                    }
+                }
+                rs.Close();
+                rs.Dispose();
+                cmd.Dispose();
+            }
+            catch (System.Exception f)
+            {
+                strErr += ("\nНе удалось получить список статей расходов.\n\nТекст ошибки: " + f.Message);
+            }
+			finally // очищаем занимаемые ресурсы
+            {
+                DBConnection.Close();
+            }
+            return objList;
+        }
+        
+        
         #endregion
 
         #region Построение дерева статей расходов

@@ -810,6 +810,160 @@ namespace ERP_Budget.Common
 
         #endregion
 
+        #region Импорт бюджета в БД
+
+        /// <summary>
+        /// Удаляет у бюджета список статей
+        /// </summary>
+        /// <param name="Budget_Guid">УИ бюджета</param>
+        /// <param name="objProfile">профайл</param>
+        /// <param name="cmdSQL">SQL-команда</param>
+        /// <param name="strErr">текст ошибки</param>
+        /// <returns>true - удачное завершение операции; false - ошибка</returns>
+        public static System.Boolean ClearBudgetItemList(System.Guid Budget_Guid, UniXP.Common.CProfile objProfile,
+            System.Data.SqlClient.SqlCommand cmdSQL, ref System.String strErr)
+        {
+            System.Boolean bRet = false;
+
+            System.Data.SqlClient.SqlConnection DBConnection = null;
+            System.Data.SqlClient.SqlCommand cmd = null;
+            try
+            {
+                if (cmdSQL == null)
+                {
+                    DBConnection = objProfile.GetDBSource();
+                    if (DBConnection == null)
+                    {
+                        strErr += ("Не удалось получить соединение с базой данных.");
+                        return bRet;
+                    }
+                    cmd = new System.Data.SqlClient.SqlCommand();
+                    cmd.Connection = DBConnection;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                }
+                else
+                {
+                    cmd = cmdSQL;
+                    cmd.Parameters.Clear();
+                }
+
+                cmd.Parameters.Clear();
+                cmd.CommandText = System.String.Format("[{0}].[dbo].[sp_DeleteBudgetDeclaration]", objProfile.GetOptionsDllDBName());
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BUDGET_GUID_ID", System.Data.SqlDbType.UniqueIdentifier));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUMBER", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MESSAGE", System.Data.SqlDbType.NVarChar, 4000));
+                cmd.Parameters["@ERROR_MESSAGE"].Direction = System.Data.ParameterDirection.Output;
+                cmd.Parameters["@BUDGET_GUID_ID"].Value = Budget_Guid;
+                cmd.ExecuteNonQuery();
+                System.Int32 iRet = (System.Int32)cmd.Parameters["@RETURN_VALUE"].Value;
+                if (iRet == 0)
+                {
+                    bRet = true;
+                }
+                else
+                {
+                    strErr += (String.Format("\nНе удалось удалить статьи бюджета.\n\nТекст ошибки: {0}", (System.String)cmd.Parameters["@ERROR_MESSAGE"].Value));
+                }
+
+                if (cmdSQL == null)
+                {
+                    cmd.Dispose();
+                    DBConnection.Close();
+                }
+            }
+            catch (System.Exception f)
+            {
+                strErr += (String.Format("\nНе удалось удалить статьи бюджета.\n\n\nТекст ошибки: {0}", f.Message));
+            }
+            return bRet;
+        }
+
+        /// <summary>
+        /// Сохраняет в БД приложение к бюджету (список статей с расшифровками)
+        /// </summary>
+        /// <param name="Busdget_Guid">УИ бюджета</param>
+        /// <param name="objBudgetItemList">список статей бюджета</param>
+        /// <param name="objProfile">профайл</param>
+        /// <param name="strErr">текст ошибки</param>
+        /// <returns>true - удачное завершение операции; false - ошибка</returns>
+        public static System.Boolean SaveBudgetItemList( System.Guid Busdget_Guid, List<CBudgetItem> objBudgetItemList, UniXP.Common.CProfile objProfile, 
+            ref System.String strErr )
+        {
+            System.Boolean bRet = false;
+
+            System.Data.SqlClient.SqlConnection DBConnection = objProfile.GetDBSource();
+            if (DBConnection == null)
+            {
+                strErr += ("Отсутствует соединение с БД.\nЗапись в БД отменена.");
+                return bRet;
+            }
+            System.Data.SqlClient.SqlTransaction DBTransaction = DBConnection.BeginTransaction();
+
+            try
+            {
+                // соединение с БД получено, прописываем команду на создание записи в БД
+                System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand();
+                cmd.Connection = DBConnection;
+                cmd.Transaction = DBTransaction;
+                cmd.CommandTimeout = 600;
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                // удаление статей бюджета
+                bRet = ClearBudgetItemList(Busdget_Guid, objProfile, cmd, ref strErr);
+
+                if (bRet == true)
+                {
+                    // пробегаем по дереву и сохраняем расшифровки
+                    foreach (CBudgetItem objBudgetItem in objBudgetItemList)
+                    {
+                        bRet = CBudgetItem.AddBudgetItemToDB(objBudgetItem, objProfile, cmd, ref strErr);
+
+                        if (bRet == true)
+                        {
+                            // запись списка расшифровок
+                            if ((objBudgetItem.BudgetItemDecodeList != null) && (objBudgetItem.BudgetItemDecodeList.Count > 0))
+                            {
+                                foreach (CBudgetItemDecode objBudgetItemDecode in objBudgetItem.BudgetItemDecodeList)
+                                {
+                                    bRet = CBudgetItemDecode.SaveBudgetItemDecode(objBudgetItemDecode, cmd, objProfile, objBudgetItem.uuidID, ref strErr);
+                                    if (bRet == false) { break; }
+                                }
+                            }
+                        }
+                        else { break; }
+                    }
+                }
+
+
+                if (bRet == true)
+                {
+                    // подтверждаем транзакцию
+                    DBTransaction.Commit();
+                }
+                else
+                {
+                    // откатываем транзакцию
+                    DBTransaction.Rollback();
+                }
+
+            }
+            catch (System.Exception f)
+            {
+                // откатываем транзакцию
+                DBTransaction.Rollback();
+                strErr += (String.Format("\nНе удалось сохранить статьи бюджета в БД.\n\nТекст ошибки: {0}", f.Message));
+            }
+			finally // очищаем занимаемые ресурсы
+            {
+            }
+
+            return bRet;
+        }
+
+
+        #endregion
+
         #region Утвердить бюджет
 
         /// <summary>
