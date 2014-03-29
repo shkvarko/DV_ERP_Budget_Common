@@ -78,6 +78,14 @@ namespace ERP_Budget.Common
         /// Валюта платежа
         /// </summary>
         public CCurrency Currency { get; set; }
+        /// <summary>
+        /// Сумма платежа фактическая
+        /// </summary>
+        public double FactPaymentValue { get; set; }
+        /// <summary>
+        /// Валюта платежа фактическая
+        /// </summary>
+        public CCurrency FactCurrency { get; set; }
         #endregion
 
         #region Констуктор
@@ -87,6 +95,8 @@ namespace ERP_Budget.Common
             PaymentDate = System.DateTime.MinValue;
             PaymentValue = 0;
             Currency = null;
+            FactPaymentValue = 0;
+            FactCurrency = null;
         }
         #endregion
 
@@ -144,7 +154,9 @@ namespace ERP_Budget.Common
                                 ID = (System.Guid)rs["GUID_ID"],
                                 PaymentValue = ((rs["PAYMENT_MONEY_IN_BUDGETDOC_CURRENCY"] == System.DBNull.Value) ? 0 : System.Convert.ToDouble(rs["PAYMENT_MONEY_IN_BUDGETDOC_CURRENCY"])),
                                 PaymentDate = ((rs["PAYMENT_DATE"] == System.DBNull.Value) ? System.DateTime.MinValue : System.Convert.ToDateTime(rs["PAYMENT_DATE"])),
-                                Currency = ((rs["CURRENCY_GUID_ID"] == System.DBNull.Value) ? null : new CCurrency() { uuidID = (System.Guid)rs["CURRENCY_GUID_ID"], CurrencyCode = System.Convert.ToString(rs["CURRENCY_CODE"]) })
+                                Currency = ((rs["CURRENCY_GUID_ID"] == System.DBNull.Value) ? null : new CCurrency() { uuidID = (System.Guid)rs["CURRENCY_GUID_ID"], CurrencyCode = System.Convert.ToString(rs["CURRENCY_CODE"]) }),
+                                FactCurrency = ((rs["PAYMENT_CURRENCY_GUID"] == System.DBNull.Value) ? null : new CCurrency() { uuidID = (System.Guid)rs["PAYMENT_CURRENCY_GUID"], CurrencyCode = System.Convert.ToString(rs["PAYMENT_CURRENCY_CODE"]) }),
+                                FactPaymentValue = ((rs["PAYMENT_MONEY_IN_BUDGETDOC_CURRENCY"] == System.DBNull.Value) ? 0 : System.Convert.ToDouble(rs["PAYMENT_MONEY"]))
                             }
                             );
                     }
@@ -175,6 +187,7 @@ namespace ERP_Budget.Common
         /// <returns>true - все параметры прошли проверку; false - проверка НЕ пройдена</returns>
         public static System.Boolean IsAllParametersValid(System.DateTime Payment_Date,
             double Payment_Value, System.Guid Currency_Guid,
+            double FactPayment_Value, System.Guid FactCurrency_Guid,
             ref System.String strErr)
         {
             System.Boolean bRet = false;
@@ -195,6 +208,16 @@ namespace ERP_Budget.Common
                     strErr += ("Необходимо указать валюту оплаты.");
                     return bRet;
                 }
+                if (FactPayment_Value <= 0)
+                {
+                    strErr += ("Необходимо указать сумму фактической оплаты больше нуля.");
+                    return bRet;
+                }
+                if (FactCurrency_Guid.CompareTo(System.Guid.Empty) == 0)
+                {
+                    strErr += ("Необходимо указать валюту фактической оплаты.");
+                    return bRet;
+                }
                 bRet = true;
             }
             catch (System.Exception f)
@@ -210,17 +233,21 @@ namespace ERP_Budget.Common
         /// <param name="Payment_Date">Дата оплаты</param>
         /// <param name="Payment_Value">Сумма оплаты</param>
         /// <param name="Currency_Guid">УИ валюты оплаты</param>
+        /// <param name="FactPayment_Value">Сумма фактической оплаты</param>
+        /// <param name="FactCurrency_Guid">УИ валюты фактической оплаты</param>
         /// <param name="objProfile">профайл</param>
         /// <param name="strErr">текст ошибки</param>
         /// <param name="LastPayment_Date">дата последней оплаты бюджетного документа</param>
         /// <returns>true - удачное завершение операции; false - ошибка</returns>
         public static System.Boolean EditObjectInDataBase(System.Guid BudgetDocPayment_Guid,
             System.DateTime Payment_Date, double Payment_Value, System.Guid Currency_Guid,
+            double FactPayment_Value, System.Guid FactCurrency_Guid,
            UniXP.Common.CProfile objProfile, ref System.String strErr, ref System.DateTime LastPayment_Date)
         {
             System.Boolean bRet = false;
 
-            if (IsAllParametersValid(Payment_Date, Payment_Value, Currency_Guid, ref strErr) == false) { return bRet; }
+            if (IsAllParametersValid(Payment_Date, Payment_Value, Currency_Guid, 
+                  FactPayment_Value, FactCurrency_Guid,  ref strErr) == false) { return bRet; }
 
             System.Data.SqlClient.SqlConnection DBConnection = null;
             System.Data.SqlClient.SqlCommand cmd = null;
@@ -243,8 +270,9 @@ namespace ERP_Budget.Common
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BudgetDocPayment_Guid", System.Data.SqlDbType.UniqueIdentifier));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Payment_Date", System.Data.SqlDbType.DateTime));
-                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Payment_Value", System.Data.SqlDbType.Money));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@PaymentBudgetDocCurrency_Value", System.Data.SqlDbType.Money));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Currency_Guid", System.Data.SqlDbType.UniqueIdentifier));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Payment_Value", System.Data.SqlDbType.Money));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUM", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MES", System.Data.SqlDbType.NVarChar, 4000));
                 cmd.Parameters["@ERROR_MES"].Direction = System.Data.ParameterDirection.Output;
@@ -252,8 +280,9 @@ namespace ERP_Budget.Common
                 cmd.Parameters["@LastPayment_Date"].Direction = System.Data.ParameterDirection.Output;
                 cmd.Parameters["@BudgetDocPayment_Guid"].Value = BudgetDocPayment_Guid;
                 cmd.Parameters["@Payment_Date"].Value = Payment_Date;
-                cmd.Parameters["@Payment_Value"].Value = Payment_Value;
-                cmd.Parameters["@Currency_Guid"].Value = Currency_Guid;
+                cmd.Parameters["@PaymentBudgetDocCurrency_Value"].Value = Payment_Value;
+                cmd.Parameters["@Payment_Value"].Value = FactPayment_Value;
+                cmd.Parameters["@Currency_Guid"].Value = FactCurrency_Guid;
                 cmd.ExecuteNonQuery();
                 System.Int32 iRes = (System.Int32)cmd.Parameters["@RETURN_VALUE"].Value;
                 LastPayment_Date = System.Convert.ToDateTime(cmd.Parameters["@LastPayment_Date"].Value);
@@ -299,7 +328,8 @@ namespace ERP_Budget.Common
             System.Boolean bIsAllParametersValid = true;
             foreach (CBudgetDocPaymentItem objItem in objList)
             {
-                if (IsAllParametersValid(objItem.PaymentDate, objItem.PaymentValue, objItem.Currency.uuidID, ref strErr) == false) 
+                if (IsAllParametersValid(objItem.PaymentDate, objItem.PaymentValue, objItem.Currency.uuidID, 
+                    objItem.FactPaymentValue, objItem.FactCurrency.uuidID, ref strErr) == false) 
                 {
                     bIsAllParametersValid = false;
                     break;
@@ -328,8 +358,9 @@ namespace ERP_Budget.Common
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@BudgetDocPayment_Guid", System.Data.SqlDbType.UniqueIdentifier));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Payment_Date", System.Data.SqlDbType.DateTime));
-                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Payment_Value", System.Data.SqlDbType.Money));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@PaymentBudgetDocCurrency_Value", System.Data.SqlDbType.Money));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Currency_Guid", System.Data.SqlDbType.UniqueIdentifier));
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Payment_Value", System.Data.SqlDbType.Money));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUM", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
                 cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_MES", System.Data.SqlDbType.NVarChar, 4000));
                 cmd.Parameters["@ERROR_MES"].Direction = System.Data.ParameterDirection.Output;
@@ -341,8 +372,9 @@ namespace ERP_Budget.Common
                 {
                     cmd.Parameters["@BudgetDocPayment_Guid"].Value = objItem.ID;
                     cmd.Parameters["@Payment_Date"].Value = objItem.PaymentDate;
-                    cmd.Parameters["@Payment_Value"].Value = objItem.PaymentValue;
-                    cmd.Parameters["@Currency_Guid"].Value = objItem.Currency.uuidID;
+                    cmd.Parameters["@PaymentBudgetDocCurrency_Value"].Value = objItem.PaymentValue;
+                    cmd.Parameters["@Payment_Value"].Value = objItem.FactPaymentValue;
+                    cmd.Parameters["@Currency_Guid"].Value = objItem.FactCurrency.uuidID;
                     cmd.ExecuteNonQuery();
 
                     iRes = (System.Int32)cmd.Parameters["@RETURN_VALUE"].Value;
@@ -401,17 +433,33 @@ namespace ERP_Budget.Common
         /// </summary>
         public System.DateTime PaymentDateNew { get; set; }
         /// <summary>
-        /// Сумма платежа новая
-        /// </summary>
-        public double PaymentValueNew { get; set; }
-        /// <summary>
         /// Дата оплаты предыдущая
         /// </summary>
         public System.DateTime PaymentDateOld { get; set; }
         /// <summary>
+        /// Сумма платежа новая
+        /// </summary>
+        public double PaymentValueNew { get; set; }
+        /// <summary>
         /// Сумма платежа предыдущая
         /// </summary>
         public double PaymentValueOld { get; set; }
+        /// <summary>
+        /// Сумма платежа по факту новая
+        /// </summary>
+        public double FactPaymentValueNew { get; set; }
+        /// <summary>
+        /// Сумма платежа  по факту предыдущая
+        /// </summary>
+        public double FactPaymentValueOld { get; set; }
+        /// <summary>
+        /// Валюта фактической оплаты предыдущая
+        /// </summary>
+        public CCurrency FactCurrencyOld { get; set; }
+        /// <summary>
+        /// Валюта фактической оплаты новая
+        /// </summary>
+        public CCurrency FactCurrencyNew { get; set; }
         #endregion
 
         #region Конструктор
@@ -424,6 +472,10 @@ namespace ERP_Budget.Common
             RecordUserUdpated = System.String.Empty;
             PaymentValueNew = 0;
             PaymentValueOld = 0;
+            FactPaymentValueNew = 0;
+            FactPaymentValueOld = 0;
+            FactCurrencyOld = null;
+            FactCurrencyNew = null;
         }
         #endregion
 
@@ -478,13 +530,17 @@ namespace ERP_Budget.Common
                         objList.Add(
                             new CBudgetDocPaymentItemArjive()
                             {
-                                ID =  ((rs["BUDGETDOC_PAYMENTS_GUID_ID"] == System.DBNull.Value) ? System.Guid.Empty : (System.Guid)rs["BUDGETDOC_PAYMENTS_GUID_ID"]), 
+                                ID = ((rs["BUDGETDOC_PAYMENTS_GUID_ID"] == System.DBNull.Value) ? System.Guid.Empty : (System.Guid)rs["BUDGETDOC_PAYMENTS_GUID_ID"]),
                                 PaymentValueOld = ((rs["PAYMENT_MONEY_IN_BUDGETDOC_CURRENCY_OLD"] == System.DBNull.Value) ? 0 : System.Convert.ToDouble(rs["PAYMENT_MONEY_IN_BUDGETDOC_CURRENCY_OLD"])),
                                 PaymentValueNew = ((rs["PAYMENT_MONEY_IN_BUDGETDOC_CURRENCY_NEW"] == System.DBNull.Value) ? 0 : System.Convert.ToDouble(rs["PAYMENT_MONEY_IN_BUDGETDOC_CURRENCY_NEW"])),
                                 PaymentDateOld = ((rs["PAYMENT_DATE_OLD"] == System.DBNull.Value) ? System.DateTime.MinValue : System.Convert.ToDateTime(rs["PAYMENT_DATE_OLD"])),
                                 PaymentDateNew = ((rs["PAYMENT_DATE_NEW"] == System.DBNull.Value) ? System.DateTime.MinValue : System.Convert.ToDateTime(rs["PAYMENT_DATE_NEW"])),
                                 RecordUpdated = ((rs["Record_Updated"] == System.DBNull.Value) ? System.DateTime.MinValue : System.Convert.ToDateTime(rs["Record_Updated"])),
-                                RecordUserUdpated = ((rs["Record_UserUdpated"] == System.DBNull.Value) ? System.String.Empty : System.Convert.ToString(rs["Record_UserUdpated"]))
+                                RecordUserUdpated = ((rs["Record_UserUdpated"] == System.DBNull.Value) ? System.String.Empty : System.Convert.ToString(rs["Record_UserUdpated"])),
+                                FactPaymentValueOld = ((rs["PAYMENT_MONEY_OLD"] == System.DBNull.Value) ? 0 : System.Convert.ToDouble(rs["PAYMENT_MONEY_OLD"])),
+                                FactPaymentValueNew = ((rs["PAYMENT_MONEY_NEW"] == System.DBNull.Value) ? 0 : System.Convert.ToDouble(rs["PAYMENT_MONEY_NEW"])),
+                                FactCurrencyOld = ((rs["PAYMENT_CURRENCY_GUID_OLD"] == System.DBNull.Value) ? null : new CCurrency() { uuidID = (System.Guid)rs["PAYMENT_CURRENCY_GUID_OLD"], CurrencyCode = System.Convert.ToString(rs["PAYMENT_CURRENCY_CODE_OLD"]) }),
+                                FactCurrencyNew = ((rs["PAYMENT_CURRENCY_GUID_NEW"] == System.DBNull.Value) ? null : new CCurrency() { uuidID = (System.Guid)rs["PAYMENT_CURRENCY_GUID_NEW"], CurrencyCode = System.Convert.ToString(rs["PAYMENT_CURRENCY_CODE_NEW"]) })
                             }
                             );
                     }
@@ -4067,11 +4123,17 @@ namespace ERP_Budget.Common
                                     {
                                         if (bUsePaymentDate == true)
                                         {
-                                            bRet = CAccountTransn.PayMoney(this, this.PaymentDate, objProfile, cmd, objDocVariantCondn.CurrentUser.ulID, objDocVariantCondn.DocEvent.EventMoney);
+                                            bRet = CAccountTransn.PayMoney(this, this.PaymentDate, objProfile, cmd, objDocVariantCondn.CurrentUser.ulID, 
+                                                objDocVariantCondn.DocEvent.EventMoney,
+                                                objDocVariantCondn.DocEvent.EventFactMoney,
+                                                ((objDocVariantCondn.DocEvent.EventFactCurrency != null ) ? objDocVariantCondn.DocEvent.EventFactCurrency.uuidID : System.Guid.Empty ) );
                                         }
                                         else
                                         {
-                                            bRet = CAccountTransn.PayMoney(this, System.DateTime.Now, objProfile, cmd, objDocVariantCondn.CurrentUser.ulID, objDocVariantCondn.DocEvent.EventMoney);
+                                            bRet = CAccountTransn.PayMoney(this, System.DateTime.Now, objProfile, cmd, objDocVariantCondn.CurrentUser.ulID, 
+                                                objDocVariantCondn.DocEvent.EventMoney,
+                                                objDocVariantCondn.DocEvent.EventFactMoney,
+                                                ((objDocVariantCondn.DocEvent.EventFactCurrency != null) ? objDocVariantCondn.DocEvent.EventFactCurrency.uuidID : System.Guid.Empty));
                                         }
                                         break;
                                     }

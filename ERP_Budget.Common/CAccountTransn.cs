@@ -118,7 +118,6 @@ namespace ERP_Budget.Common
             get { return m_strOperName; }
             set { m_strOperName = value; }
         }
-
         #endregion
 
         #region Конструкторы
@@ -541,7 +540,8 @@ namespace ERP_Budget.Common
         /// <returns>true - успешно; false - ошибка</returns>
         public static System.Boolean PayMoney( CBudgetDoc objBudgetDoc, System.DateTime dtDate,
             UniXP.Common.CProfile objProfile, System.Data.SqlClient.SqlCommand cmd, System.Int32 iUserID, 
-            double PayMoney )
+            double PayMoney, double FactPayMoney,
+            System.Guid FactPayCurrency_Guid )
         {
             System.Boolean bRet = false;
             if ((objBudgetDoc.DocState == null) && (objProfile.GetClientsRight().GetState(ERP_Budget.Global.Consts.strDRAccountant) != true))
@@ -563,7 +563,7 @@ namespace ERP_Budget.Common
                 cmd.Parameters.Add( new System.Data.SqlClient.SqlParameter( "@BUDGETDOC_GUID_ID", System.Data.SqlDbType.UniqueIdentifier ) );
                 cmd.Parameters.Add( new System.Data.SqlClient.SqlParameter( "@ACCOUNTTRANSN_DATE", System.Data.SqlDbType.DateTime ) );
                 cmd.Parameters.Add( new System.Data.SqlClient.SqlParameter( "@USERS_ID", System.Data.SqlDbType.Int, 4 ) );
-                cmd.Parameters.Add( new System.Data.SqlClient.SqlParameter( "@ERROR_NUM", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ( ( System.Byte )( 0 ) ), ( ( System.Byte )( 0 ) ), "", System.Data.DataRowVersion.Current, null ) );
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ERROR_NUM", System.Data.SqlDbType.Int, 8, System.Data.ParameterDirection.Output, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
                 cmd.Parameters.Add( new System.Data.SqlClient.SqlParameter( "@ERROR_MES", System.Data.SqlDbType.NVarChar, 4000 ) );
                 cmd.Parameters[ "@ERROR_MES" ].Direction = System.Data.ParameterDirection.Output;
                 cmd.Parameters[ "@BUDGETDOC_GUID_ID" ].Value = objBudgetDoc.uuidID;
@@ -579,6 +579,18 @@ namespace ERP_Budget.Common
                 {
                     cmd.Parameters["@PAY_MONEY_IN"].IsNullable = false;
                     cmd.Parameters["@PAY_MONEY_IN"].Value = PayMoney;
+                }
+
+                if (FactPayMoney != 0)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@PAY_MONEY_IN_FACT", System.Data.SqlDbType.Money));
+                    cmd.Parameters["@PAY_MONEY_IN_FACT"].Value = FactPayMoney;
+                }
+
+                if (FactPayCurrency_Guid.CompareTo( System.Guid.Empty ) != 0)
+                {
+                    cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@PAY_CURRENCY_GUID", System.Data.SqlDbType.UniqueIdentifier));
+                    cmd.Parameters["@PAY_CURRENCY_GUID"].Value = FactPayCurrency_Guid;
                 }
 
                 cmd.ExecuteNonQuery();

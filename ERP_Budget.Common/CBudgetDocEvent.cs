@@ -81,6 +81,14 @@ namespace ERP_Budget.Common
             get { return m_EventMoney; }
             set { m_EventMoney = value; }
         }
+        /// <summary>
+        /// Сумма в фактической валюте 
+        /// </summary>
+        public double EventFactMoney { get; set; }
+        /// <summary>
+        /// Фактическая валюта
+        /// </summary>
+        public CCurrency EventFactCurrency { get; set; }
         #endregion
 
         #region Конструкторы
@@ -93,6 +101,8 @@ namespace ERP_Budget.Common
             this.m_bShowMoney = false;
             this.m_bCanChanhgeMoney = false;
             this.m_EventMoney = 0;
+            EventFactMoney = 0;
+            EventFactCurrency = null;
         }
 
         public CBudgetDocEvent(System.Guid uuidBudgetDocEventID)
@@ -104,6 +114,8 @@ namespace ERP_Budget.Common
             this.m_bShowMoney = false;
             this.m_bCanChanhgeMoney = false;
             this.m_EventMoney = 0;
+            EventFactMoney = 0;
+            EventFactCurrency = null;
         }
 
         public CBudgetDocEvent(System.Guid uuidBudgetDocEventID, System.String strName)
@@ -115,6 +127,8 @@ namespace ERP_Budget.Common
             this.m_bShowMoney = false;
             this.m_bCanChanhgeMoney = false;
             this.m_EventMoney = 0;
+            EventFactMoney = 0;
+            EventFactCurrency = null;
         }
         public CBudgetDocEvent(System.Guid uuidBudgetDocEventID, System.String strName, System.Int32 iOrderNum)
         {
@@ -125,6 +139,8 @@ namespace ERP_Budget.Common
             this.m_bShowMoney = false;
             this.m_bCanChanhgeMoney = false;
             this.m_EventMoney = 0;
+            EventFactMoney = 0;
+            EventFactCurrency = null;
         }
         public CBudgetDocEvent(System.Guid uuidBudgetDocEventID, System.String strName, System.Int32 iOrderNum,
             System.Boolean bShowMoney, System.Boolean bCanChanhgeMoney)
@@ -136,6 +152,8 @@ namespace ERP_Budget.Common
             this.m_bShowMoney = bShowMoney;
             this.m_bCanChanhgeMoney = bCanChanhgeMoney;
             this.m_EventMoney = 0;
+            EventFactMoney = 0;
+            EventFactCurrency = null;
         }
         #endregion
 
