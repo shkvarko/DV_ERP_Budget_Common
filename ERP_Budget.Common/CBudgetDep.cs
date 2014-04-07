@@ -2121,33 +2121,33 @@ namespace ERP_Budget.Common
                                     cmd.Parameters["@Rights_ID"].Value = objUser.DynamicRightsList.FindByName(ERP_Budget.Global.Consts.strDRCoordinator).ID;
                                     cmd.ExecuteNonQuery();
                                     iRet = (System.Int32)cmd.Parameters["@RETURN_VALUE"].Value;
+                                }
 
-                                    if (iRet == 0)
+                                if (iRet == 0)
+                                {
+                                    // проверка, назначен ли пользователь контролером
+                                    if (objUser.IsBudgetDepController == true)
                                     {
-                                        // проверка, назначен ли пользователь контролером
-                                        if (objUser.IsBudgetDepController == true)
-                                        {
-                                            cmd.Parameters["@Rights_ID"].Value = objUser.DynamicRightsList.FindByName(ERP_Budget.Global.Consts.strDRInspector).ID;
-                                            cmd.ExecuteNonQuery();
-                                            iRet = (System.Int32)cmd.Parameters["@RETURN_VALUE"].Value;
-                                        }
-                                        if (iRet != 0)
-                                        {
-                                            // откатываем транзакцию
-                                            DBTransaction.Rollback();
-                                            strErr += (System.Convert.ToString(cmd.Parameters["@ERROR_MESSAGE"].Value));
-                                            break;
-                                        }
+                                        cmd.Parameters["@Rights_ID"].Value = objUser.DynamicRightsList.FindByName(ERP_Budget.Global.Consts.strDRInspector).ID;
+                                        cmd.ExecuteNonQuery();
+                                        iRet = (System.Int32)cmd.Parameters["@RETURN_VALUE"].Value;
                                     }
-                                    else
+                                    if (iRet != 0)
                                     {
                                         // откатываем транзакцию
                                         DBTransaction.Rollback();
-                                        strErr += ( System.Convert.ToString( cmd.Parameters["@ERROR_MESSAGE"].Value ) );
+                                        strErr += (System.Convert.ToString(cmd.Parameters["@ERROR_MESSAGE"].Value));
                                         break;
                                     }
-
                                 }
+                                else
+                                {
+                                    // откатываем транзакцию
+                                    DBTransaction.Rollback();
+                                    strErr += (System.Convert.ToString(cmd.Parameters["@ERROR_MESSAGE"].Value));
+                                    break;
+                                }
+
                             }
                             else
                             {
