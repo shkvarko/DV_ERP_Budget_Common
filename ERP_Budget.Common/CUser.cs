@@ -464,6 +464,90 @@ namespace ERP_Budget.Common
             }
             return objUser;
         }
+        /// <summary>
+        /// Возвращает список классов CUser
+        /// </summary>
+        /// <param name="objProfile">профайл</param>
+        /// <returns>true - успешная инициализация; false - ошибка</returns>
+        public List<CUser> GetBudgetUserList(UniXP.Common.CProfile objProfile,
+            System.Boolean bInitDynamicRightsList = true,
+            System.Boolean bInitEmailList = true,
+            System.Boolean bInitEmployeePostList = true)
+        {
+            List<CUser> objList = new List<CUser>();
+
+            System.Data.SqlClient.SqlConnection DBConnection = objProfile.GetDBSource();
+            if (DBConnection == null) { return objList; }
+
+            try
+            {
+                // соединение с БД получено, прописываем команду на выборку данных
+                System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand();
+                cmd.Connection = DBConnection;
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.CommandText = System.String.Format("[{0}].[dbo].[sp_GetUser]", objProfile.GetOptionsDllDBName());
+                cmd.Parameters.Add(new System.Data.SqlClient.SqlParameter("@RETURN_VALUE", System.Data.SqlDbType.Int, 4, System.Data.ParameterDirection.ReturnValue, false, ((System.Byte)(0)), ((System.Byte)(0)), "", System.Data.DataRowVersion.Current, null));
+                System.Data.SqlClient.SqlDataReader rs = cmd.ExecuteReader();
+                if (rs.HasRows)
+                {
+                    // набор данных непустой
+                    CUser objUser = null;
+                    CDynamicRight objDynamicRight = new CDynamicRight();
+                    CEmail objEmail = new CEmail();
+                    CCompanyPost objCompanyPost = new CCompanyPost();
+                    while (rs.Read())
+                    {
+
+                        objUser = new CUser();
+                        objUser.m_strName = rs.GetString(0);
+                        objUser.m_strUserFirstName = rs.GetString(1);
+                        objUser.m_strUserMiddleName = rs.GetString(2);
+                        objUser.m_strUserLastName = rs.GetString(3);
+                        objUser.m_strUserDescription = rs.GetString(4);
+                        objUser.m_ulID = rs.GetInt32(7);
+                        objUser.m_ulUniXPID = rs.GetInt32(6);
+                        objUser.m_uuidOptionID = rs.GetGuid(5);
+                        objUser.IsBlocked = System.Convert.ToBoolean(rs["IsUserBlocked"]);
+                        if (bInitDynamicRightsList == true)
+                        {
+                            objUser.m_objDynamicRightsList = objDynamicRight.GetDynamicRightsList(objProfile, objUser.m_ulID);
+                        }
+                        if (bInitEmailList == true)
+                        {
+                            objUser.m_objEmailList = objEmail.GetEmailList(objProfile, objUser.m_ulID);
+                        }
+                        if (bInitEmployeePostList == true)
+                        {
+                            objUser.m_objEmployeePostList = objCompanyPost.GetUserCompanyPostList(objProfile, objUser.m_ulID);
+                        }
+                        objList.Add(objUser);
+                    }
+                    objDynamicRight = null;
+                    objEmail = null;
+                    objCompanyPost = null;
+                }
+                else
+                {
+                    DevExpress.XtraEditors.XtraMessageBox.Show(
+                    "Не удалось получить список классов CUser.\nВ БД не найдена информация.", "Внимание",
+                    System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Warning);
+
+                }
+                cmd.Dispose();
+                rs.Dispose();
+            }
+            catch (System.Exception e)
+            {
+                DevExpress.XtraEditors.XtraMessageBox.Show(
+                "Не удалось получить список классов CUser.\n" + e.Message, "Внимание",
+                System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+            finally // очищаем занимаемые ресурсы
+            {
+                DBConnection.Close();
+            }
+            return objList;
+        }
 
         #endregion
 
